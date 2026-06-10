@@ -1,0 +1,229 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`binary-search > matches its golden trace for the default input 1`] = `
+[
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "hi": 7,
+      "lo": 0,
+      "target": 23,
+    },
+  },
+  {
+    "line": 2,
+    "refs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+    ],
+    "role": "range",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "t": "vars",
+    "values": {
+      "hi": 7,
+      "lo": 0,
+      "mid": 3,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      3,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "a": 3,
+    "b": 3,
+    "line": 4,
+    "t": "compare",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "a[3] = 16 < 23 → search right",
+  },
+  {
+    "line": 2,
+    "refs": [
+      4,
+      5,
+      6,
+      7,
+    ],
+    "role": "range",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "t": "vars",
+    "values": {
+      "hi": 7,
+      "lo": 4,
+      "mid": 5,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      5,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "a": 5,
+    "b": 5,
+    "line": 4,
+    "t": "compare",
+  },
+  {
+    "line": 6,
+    "t": "annotate",
+    "text": "a[5] = 42 > 23 → search left",
+  },
+  {
+    "line": 2,
+    "refs": [
+      4,
+    ],
+    "role": "range",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "t": "vars",
+    "values": {
+      "hi": 4,
+      "lo": 4,
+      "mid": 4,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      4,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "a": 4,
+    "b": 4,
+    "line": 4,
+    "t": "compare",
+  },
+  {
+    "line": 4,
+    "refs": [
+      4,
+    ],
+    "t": "markSorted",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "found 23 at index 4",
+  },
+]
+`;
+
+exports[`linear-search > matches its golden trace for the default input 1`] = `
+[
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "target": 23,
+    },
+  },
+  {
+    "line": 1,
+    "refs": [
+      0,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "a[0] = 4 vs target 23",
+  },
+  {
+    "line": 1,
+    "refs": [
+      1,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "a[1] = 8 vs target 23",
+  },
+  {
+    "line": 1,
+    "refs": [
+      2,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "a[2] = 15 vs target 23",
+  },
+  {
+    "line": 1,
+    "refs": [
+      3,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "a[3] = 16 vs target 23",
+  },
+  {
+    "line": 1,
+    "refs": [
+      4,
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "a[4] = 23 vs target 23",
+  },
+  {
+    "line": 2,
+    "refs": [
+      4,
+    ],
+    "t": "markSorted",
+  },
+  {
+    "line": 2,
+    "t": "annotate",
+    "text": "found 23 at index 4",
+  },
+]
+`;

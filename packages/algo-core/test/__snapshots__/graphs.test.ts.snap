@@ -1,0 +1,814 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BFS > matches its golden trace 1`] = `
+[
+  {
+    "line": 1,
+    "ref": "A",
+    "t": "enqueue",
+  },
+  {
+    "line": 3,
+    "ref": "A",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "A",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "A-B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "B",
+    "t": "enqueue",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "A-C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "C",
+    "t": "enqueue",
+  },
+  {
+    "line": 7,
+    "ref": "A",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "B",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "A-B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "A already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B-D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "D",
+    "t": "enqueue",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "E",
+    "t": "enqueue",
+  },
+  {
+    "line": 7,
+    "ref": "B",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "C",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "A-C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "A already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "C-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "E already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "C-F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "F",
+    "t": "enqueue",
+  },
+  {
+    "line": 7,
+    "ref": "C",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "D",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B-D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "B already discovered — skip",
+  },
+  {
+    "line": 7,
+    "ref": "D",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "E",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "B already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "C-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "C already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "E-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 6,
+    "ref": "G",
+    "t": "enqueue",
+  },
+  {
+    "line": 7,
+    "ref": "E",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "F",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "C-F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "C already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "F-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "G already discovered — skip",
+  },
+  {
+    "line": 7,
+    "ref": "F",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "ref": "G",
+    "t": "dequeue",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "E-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "E already discovered — skip",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "F-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "F already discovered — skip",
+  },
+  {
+    "line": 7,
+    "ref": "G",
+    "t": "visit",
+  },
+  {
+    "line": 2,
+    "t": "vars",
+    "values": {
+      "order": "BFS complete",
+    },
+  },
+]
+`;
+
+exports[`DFS > matches its golden trace 1`] = `
+[
+  {
+    "frame": {
+      "args": {
+        "u": "A",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "A",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "A",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "A-B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "B",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "B",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "A-B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "A already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "B-D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "D",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "D",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "B-D",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "B already visited — skip",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "D",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "B-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "E",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "E",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "B-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "B already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "C-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "C",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "C",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "A-C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "A already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "C-E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "E already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "C-F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "F",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "F",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "C-F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "C already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "F-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "G",
+      },
+      "fn": "dfs",
+    },
+    "line": 1,
+    "t": "callPush",
+  },
+  {
+    "line": 1,
+    "refs": [
+      "G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 2,
+    "ref": "G",
+    "t": "visit",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "E-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "E already visited — skip",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "F-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "F already visited — skip",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "G",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "F",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "F",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "C",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "E",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "E-G",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "G already visited — skip",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "E",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "B",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "B",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+  {
+    "line": 4,
+    "refs": [
+      "A",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "A-C",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "C already visited — skip",
+  },
+  {
+    "frame": {
+      "args": {
+        "u": "A",
+      },
+      "fn": "dfs",
+    },
+    "line": 5,
+    "t": "callPop",
+  },
+]
+`;

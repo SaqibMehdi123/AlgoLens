@@ -1,0 +1,416 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BST insert > matches its golden trace 1`] = `
+[
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 8,
+    },
+  },
+  {
+    "line": 2,
+    "ref": "8",
+    "t": "set",
+    "value": 8,
+  },
+  {
+    "line": 2,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 3,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "3 < 8 → go left",
+  },
+  {
+    "line": 6,
+    "ref": "3",
+    "t": "set",
+    "value": 3,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "3",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 10,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "10 ≥ 8 → go right",
+  },
+  {
+    "line": 6,
+    "ref": "10",
+    "t": "set",
+    "value": 10,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "10",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 1,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "1 < 8 → go left",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "3",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "1 < 3 → go left",
+  },
+  {
+    "line": 6,
+    "ref": "1",
+    "t": "set",
+    "value": 1,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "1",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 6,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "6 < 8 → go left",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "3",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "6 ≥ 3 → go right",
+  },
+  {
+    "line": 6,
+    "ref": "6",
+    "t": "set",
+    "value": 6,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "6",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 14,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "14 ≥ 8 → go right",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "10",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "14 ≥ 10 → go right",
+  },
+  {
+    "line": 6,
+    "ref": "14",
+    "t": "set",
+    "value": 14,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "14",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 4,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "4 < 8 → go left",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "3",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "4 ≥ 3 → go right",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "6",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "4 < 6 → go left",
+  },
+  {
+    "line": 6,
+    "ref": "4",
+    "t": "set",
+    "value": 4,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "4",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 7,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "7 < 8 → go left",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "3",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "7 ≥ 3 → go right",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "6",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "7 ≥ 6 → go right",
+  },
+  {
+    "line": 6,
+    "ref": "7",
+    "t": "set",
+    "value": 7,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "7",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 1,
+    "t": "vars",
+    "values": {
+      "v": 13,
+    },
+  },
+  {
+    "line": 3,
+    "refs": [
+      "8",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "13 ≥ 8 → go right",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "10",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 5,
+    "t": "annotate",
+    "text": "13 ≥ 10 → go right",
+  },
+  {
+    "line": 3,
+    "refs": [
+      "14",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+  {
+    "line": 4,
+    "t": "annotate",
+    "text": "13 < 14 → go left",
+  },
+  {
+    "line": 6,
+    "ref": "13",
+    "t": "set",
+    "value": 13,
+  },
+  {
+    "line": 6,
+    "refs": [
+      "13",
+    ],
+    "role": "active",
+    "t": "highlight",
+  },
+]
+`;
