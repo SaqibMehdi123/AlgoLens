@@ -1,0 +1,87 @@
+# Breadth-First Search
+
+"How many introductions connect you to anyone on the platform?" "What is the fewest moves to
+solve this puzzle state?" "Which servers go down if this one fails?" All three are the same
+question — *what is reachable, and how close is it* — and BFS is the answer to all of them.
+
+## Rings, not tunnels
+
+Picture dropping a stone in water: the wave reaches everything one unit away, then everything
+two units away, never skipping a ring. BFS explores a graph exactly like that — it finishes
+distance 1 completely before touching distance 2.
+
+<Viz
+  algo="bfs"
+  frame={10}
+  caption="Cyan nodes are the frontier (discovered, waiting in the queue); violet nodes are fully processed."
+/>
+
+The machinery is a **queue** — first in, first out. That single choice produces the ring-by-ring
+order: nodes discovered earlier are processed earlier, so nearer nodes always come first.
+
+## The algorithm
+
+1. Put the start node in the queue and mark it **discovered**.
+2. While the queue is not empty:
+   - Dequeue the front node `u`.
+   - For each neighbor `w` of `u`: if `w` is not yet discovered, mark it and enqueue it.
+   - Mark `u` **visited** (fully processed).
+
+Two states matter, and the visualization colors them differently on purpose:
+
+- **Frontier (cyan):** discovered and queued, but neighbors not yet examined.
+- **Visited (violet):** dequeued and fully processed.
+
+<Callout kind="warning">
+  Mark nodes discovered **when they are enqueued**, not when they are dequeued. Mark-on-dequeue
+  lets the same node enter the queue multiple times through different neighbors — correct
+  output, but the queue can blow up to O(E) entries and the run slows badly on dense graphs.
+</Callout>
+
+<Callout kind="insight">
+  **Shortest paths for free.** Because BFS finishes ring k before starting ring k+1, the first
+  time it reaches a node is via a minimum-edge path. In any unweighted graph, "BFS discovery
+  order" *is* "shortest path order" — no extra bookkeeping needed. (Weighted graphs need
+  Dijkstra, which is BFS with a priority queue.)
+</Callout>
+
+## Complexity
+
+| Aspect | Cost | Why |
+| --- | --- | --- |
+| Time | `O(V + E)` | each node enqueued once, each edge examined once (twice if undirected) |
+| Space | `O(V)` | the discovered set, plus a queue that peaks at one ring |
+
+`O(V + E)` is as good as it gets — you cannot answer reachability without looking at every
+edge at least once.
+
+<Quiz
+  id="bfs-complexity"
+  type="complexity_pick"
+  prompt="A social graph has V users and E friendships. What does it cost BFS to find everyone within 3 hops of a user?"
+  options={["O(V²)", "O(V + E)", "O(E log V)", "O(V · E)"]}
+  answer={1}
+  explanation="Even bounded to 3 rings, the worst case touches every node once and every edge once — the discovered-set check is what prevents revisits. Watch the trace: each edge lights up exactly once per endpoint, and nodes that are already discovered are skipped with a note."
+  replay={{ algo: "bfs", frame: 14, label: "Watch edges being examined exactly once" }}
+/>
+
+<Quiz
+  id="bfs-dequeue-order"
+  type="predict_output"
+  prompt="In the lesson's graph (start A; A connects to B and C; B to D and E; C to E and F; E and F to G) — which node is dequeued FOURTH?"
+  code={"queue: [A]            // start\ndequeue A → enqueue B, C\ndequeue B → enqueue D, E\ndequeue C → enqueue F   (E already discovered)\ndequeue ?               // ← fourth"}
+  options={["E", "D", "F", "G"]}
+  answer={1}
+  explanation="After A, B, C are dequeued the queue holds [D, E, F] — D was enqueued while processing B, before E and F. First in, first out: D is dequeued fourth. If this were a stack (LIFO) you would get depth-first order instead — that single data-structure swap is the entire difference between BFS and DFS."
+  replay={{ algo: "bfs", frame: 12, label: "Step to the fourth dequeue yourself" }}
+/>
+
+## Summary
+
+- BFS explores in rings using a queue; nearer nodes are always finished first.
+- Mark discovered on **enqueue** — the classic correctness-adjacent performance bug.
+- First arrival = shortest path in unweighted graphs; no extra work required.
+- Cost `O(V + E)` time, `O(V)` space — optimal for reachability questions.
+
+**Try it:** open [DFS in the playground](/visualize/dfs) and compare its dive-and-backtrack
+pattern against the rings you just watched — same graph, one data structure swapped.

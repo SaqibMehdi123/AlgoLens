@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "content"
 
 # Shared dependency versions referenced as "catalog:" in package manifests.
 catalog:

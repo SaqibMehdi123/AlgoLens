@@ -1,0 +1,109 @@
+# Big-O Notation
+
+Two functions can both be "correct" and still behave completely differently in production.
+One returns in a millisecond at a million elements; the other locks up your server. The
+difference is rarely visible in the code review — it is visible in how the work *grows*.
+
+Big-O is the tool for seeing that growth before you ship.
+
+## Count steps, not seconds
+
+Wall-clock time is a bad measure: it changes with your laptop, the JIT, even the weather in
+your data center. What does not change is **how many basic operations** an algorithm performs
+for an input of size `n`.
+
+Watch linear search scan an array. Every element it touches is one unit of work — the bars
+light up one by one, left to right:
+
+<Viz
+  algo="linear-search"
+  values={[4, 8, 15, 16, 23, 42, 56, 71]}
+  target={23}
+  frame={9}
+  caption="Linear search touches elements one at a time until it finds the target."
+/>
+
+If the target sits at the end — or is missing — the scan touches all `n` elements. Double the
+array, double the work. That proportionality is the whole idea: linear search is **O(n)**.
+
+Now compare the same search done by halving (you will meet this algorithm properly in the next
+lesson). It throws away half the remaining window at every step:
+
+<Viz
+  algo="binary-search"
+  values={[4, 8, 15, 16, 23, 42, 56, 71]}
+  target={23}
+  frame={8}
+  caption="Binary search discards half the window per step — the slate bars are already eliminated."
+/>
+
+Eight elements need at most 3 halvings. A *million* elements need about 20. That is **O(log n)**
+— growth so slow it barely registers.
+
+## The formal idea, minus the ceremony
+
+`f(n)` is `O(g(n))` if, past some input size, `f` is bounded above by a constant multiple of
+`g`. In practice that means three working rules:
+
+1. **Drop constants.** `3n + 40` is `O(n)`. Constants matter for benchmarks, not for growth.
+2. **Keep only the dominant term.** `n² + n + 1000` is `O(n²)` — for large `n` the square is
+   all that matters.
+3. **Nesting multiplies, sequence takes the max.** A loop inside a loop over the same input is
+   `n · n = n²`. Two loops one after another are `n + n`, still `O(n)`.
+
+## The growth classes you will actually meet
+
+| Class | Name | Feel at n = 1,000,000 |
+| --- | --- | --- |
+| `O(1)` | constant | instant |
+| `O(log n)` | logarithmic | ~20 steps |
+| `O(n)` | linear | a million steps — fine |
+| `O(n log n)` | linearithmic | ~20 million — fine |
+| `O(n²)` | quadratic | a trillion — minutes to hours |
+| `O(2ⁿ)` | exponential | the universe ends first |
+
+The cliff between `O(n log n)` and `O(n²)` is the one that bites real systems: it is the
+difference between merge sort and bubble sort, between a join with an index and one without.
+
+<Quiz
+  id="nested-loop-class"
+  type="complexity_pick"
+  prompt="A function compares every pair of elements in one array:"
+  code={"function hasDuplicate(a) {\n  for (let i = 0; i < a.length; i++) {\n    for (let j = i + 1; j < a.length; j++) {\n      if (a[i] === a[j]) return true;\n    }\n  }\n  return false;\n}"}
+  options={["O(n)", "O(n log n)", "O(n²)", "O(2ⁿ)"]}
+  answer={2}
+  explanation="The inner loop runs inside the outer loop over the same input: nesting multiplies, so n · n = O(n²). The shrinking start (j = i + 1) gives the triangular sum n(n−1)/2 — by rule 1 and 2, still O(n²). This is exactly the all-pairs pattern bubble sort performs."
+  replay={{
+    algo: "bubble-sort",
+    query: "v=5,3,8,4,2,7,1,6",
+    frame: 24,
+    label: "Watch bubble sort do its O(n²) pairwise compares",
+  }}
+/>
+
+<Quiz
+  id="doubling-iterations"
+  type="predict_output"
+  prompt="How many times does the loop body run?"
+  code={"let count = 0;\nfor (let i = 1; i < 64; i = i * 2) {\n  count++;\n}\nconsole.log(count);"}
+  options={["6", "32", "64", "7"]}
+  answer={0}
+  explanation="i takes the values 1, 2, 4, 8, 16, 32 — six doublings before reaching 64. Doubling (or halving) until a bound is the signature of O(log n): log₂(64) = 6. It is the same shrinking you saw in the binary search visualization, just in reverse."
+  replay={{
+    algo: "binary-search",
+    query: "v=4,8,15,16,23,42,56,71&target=23",
+    frame: 8,
+    label: "See halving in action in binary search",
+  }}
+/>
+
+## Summary
+
+- Measure **growth in operations**, not seconds: it is the property that survives hardware.
+- Drop constants, keep the dominant term; nesting multiplies, sequence takes the max.
+- Learn the six classes in the table — they cover nearly everything you will write.
+- When you are unsure, *count what the visualization actually does*: the step counter in the
+  player is an operation count.
+
+**Next:** [Binary Search](/learn/dsa-foundations/binary-search) — the `O(log n)` idea as a real
+algorithm, with its invariant and its pitfalls.
