@@ -14,6 +14,7 @@
   "dependencies": {
     "@algolens/algo-core": "workspace:*",
     "@algolens/api-contracts": "workspace:*",
+    "@algolens/complexity": "workspace:*",
     "@algolens/content": "workspace:*",
     "@algolens/ui": "workspace:*",
     "@algolens/viz-engine": "workspace:*",

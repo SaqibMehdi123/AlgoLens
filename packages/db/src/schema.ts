@@ -292,7 +292,33 @@ export const vizSnapshots = pgTable(
   (t) => [index("viz_snapshots_user_idx").on(t.userId, t.createdAt)],
 );
 
+// --- 4. Analyze — Complexity Lab (docs/03 §4) ----------------------------------------------------
+
+export const complexityAnalyses = pgTable(
+  "complexity_analyses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }), // anonymous allowed
+    codeHash: text("code_hash").notNull(), // sha256(language||source) → dedupe & AI cache
+    language: codeLanguage("language").notNull(),
+    sourceCode: text("source_code").notNull(),
+    generatorKey: text("generator_key"),
+    staticResult: jsonb("static_result"),
+    empiricalResult: jsonb("empirical_result"),
+    aiResult: jsonb("ai_result"),
+    finalEstimate: text("final_estimate"),
+    confidence: text("confidence").notNull().default("low"),
+    isPublic: boolean("is_public").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("analyses_user_idx").on(t.userId, t.createdAt),
+    index("analyses_code_hash_idx").on(t.codeHash),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Visualization = typeof visualizations.$inferSelect;
 export type NewVisualization = typeof visualizations.$inferInsert;
+export type ComplexityAnalysis = typeof complexityAnalyses.$inferSelect;

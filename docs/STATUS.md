@@ -47,11 +47,35 @@ Tracks progress against [06-implementation-roadmap.md](./06-implementation-roadm
 - ⛔️ Deferred: server-side progress (needs Auth.js + Postgres), remaining ~22 Foundations
   lessons (content sprint), Playwright e2e for PRD story #2, search indexing checks.
 
+### Phase 3 — Complexity Lab (core complete)
+
+- ✅ `@algolens/complexity` static layer: Babel-AST walker — loop classification (counter → n,
+  geometric → log n, triangular → n², constant → 1), bisection/halving detection, known-call
+  cost table, recursion → recurrence (Master theorem / summation / exponential branching with
+  per-path call counting so guard-style recursion classifies correctly). **Honesty contract:**
+  unrecognized constructs (Collatz-style loops, unknown calls, odd recursion) land in
+  `unresolved[]` and lower confidence — asserted by tests, never guessed away.
+- ✅ **50-function golden benchmark in CI, gated at ≥90%** (currently 100%); twoSum→O(n²) HIGH
+  confidence and naive-fib→O(2ⁿ) asserted explicitly (phase acceptance).
+- ✅ Empirical layer: geometric n schedule, median-of-reps, **op counting via Proxy-instrumented
+  arrays (noise-free, preferred) + wall-time fallback**, closed-form least-squares fit over the
+  7 candidate classes with R² + runner-up, 10s adaptive budget whose projection-based early bail
+  doubles as the exponential signal (naive fib bails in seconds, asserted).
+- ✅ Verdict merge (§5.4): agree → high confidence; disagree → divergence card with both chips +
+  likely reasons (worst-case vs input-family, near-tie fits, partial static).
+- ✅ `/analyze` UI: editor + generator preset chips, **bench Web Worker** (user code never touches
+  the main thread — rule 5; cancel + 20s terminate guard), streaming per-n progress, verdict /
+  divergence cards, annotated source gutter, log-log SVG growth chart with fitted overlays,
+  "likely exponential" callout, parse-error path (empirical still runs).
+- ✅ `complexity_analyses` Drizzle table; `POST /api/v1/analyses` validates → 501 per ADR-0003.
+- ⛔️ Deferred: Monaco editor (styled textarea for now — avoids runtime CDN dependency; swap is
+  isolated to one component), AI layer (C5, P1), persistence + Redis rate limits (needs infra),
+  Pyodide/Python (C7).
+
 ## Next (not built yet)
 
-- **Phase 1/2 polish:** Playwright e2e (PRD stories #1, #2), axe-core CI, Canvas renderer
-  >300 elements, run-your-own-code worker mode (A8), content sprint to 25 lessons.
-- **Phase 3 — Complexity Lab:** static analyzer + empirical worker + honesty contract.
+- **Phase 1/2/3 polish:** Playwright e2e (PRD stories #1–#3), axe-core CI, Canvas renderer
+  >300 elements, run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap.
 - **Phase 4 — Practice:** problem workspace, server judge, malicious-submission suite, Judge0.
 - **Phase 5 — Retention:** SM-2 reviews, streaks/badges, share OG images.
 - **Phase 6 — Hardening:** security/perf/ops passes.
