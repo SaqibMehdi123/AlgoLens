@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* Scan the app source and the workspace design-system package for class names. */
+@source "../";
+@source "../../../../packages/ui/src";
+
+/* Dark is the default; light is opt-in via a `.light` class on <html> (docs/05 §2). */
+@custom-variant light (&:where(.light, .light *));
+
+/* ============================================================
+   Design tokens — docs/05 §2. These raw vars flip with theme;
+   @theme inline below maps them to Tailwind color utilities.
+   ============================================================ */
+:root {
+  /* Background layers — cool near-black blues, not pure black */
+  --background: #0b0e14;
+  --surface: #11151d;
+  --raised: #1a202c;
+  --subtle: #2a3140; /* 1px borders */
+  --ring: #7aa2f7; /* focus ring */
+
+  /* Text */
+  --foreground: #e6eaf2;
+  --secondary-fg: #9aa4b8;
+  --muted-fg: #6b7385;
+
+  /* Brand / primary action — electric indigo */
+  --primary: #6c7bff;
+  --primary-hover: #8591ff;
+  --primary-foreground: #0b0e14;
+
+  /* Semantic visualization palette — fixed meanings everywhere */
+  --viz-compare: #f5a524; /* amber */
+  --viz-swap: #ff6b6b; /* coral */
+  --viz-sorted: #2dd4a7; /* mint */
+  --viz-visited: #a78bfa; /* violet */
+  --viz-frontier: #22d3ee; /* cyan */
+  --viz-pivot: #f472b6; /* pink */
+  --viz-range: #3d4456; /* inactive slate */
+
+  /* Renderer support tokens */
+  --viz-bar: #6c7bff; /* default element fill = brand indigo */
+  --viz-edge: #2a3140;
+  --viz-needle: #f5a524;
+  --viz-on-fill: #0b0e14; /* text drawn on a filled bar/node */
+  --viz-text-muted: #9aa4b8;
+}
+
+.light {
+  --background: #fafbfd;
+  --surface: #ffffff;
+  --raised: #f1f4f9;
+  --subtle: #d6dce8;
+  --ring: #3b5bdb;
+
+  --foreground: #11151d;
+  --secondary-fg: #4a5568;
+  --muted-fg: #6b7385;
+
+  --primary: #5560e0;
+  --primary-hover: #4853c8;
+  --primary-foreground: #ffffff;
+
+  /* Semantic hues kept; support tokens adjusted for light contrast */
+  --viz-range: #c4cbd9;
+  --viz-bar: #5560e0;
+  --viz-edge: #c4cbd9;
+  --viz-on-fill: #ffffff;
+  --viz-text-muted: #4a5568;
+}
+
+/* Fonts (theme-stable) */
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
+}
+
+/* Map raw vars → Tailwind color utilities (bg-surface, text-foreground, border-subtle, …).
+   `inline` makes the utilities emit var() so .light overrides take effect at runtime. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-subtle: var(--subtle);
+  --color-ring: var(--ring);
+
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary-fg);
+  --color-muted: var(--muted-fg);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-compare: var(--viz-compare);
+  --color-swap: var(--viz-swap);
+  --color-sorted: var(--viz-sorted);
+  --color-visited: var(--viz-visited);
+  --color-frontier: var(--viz-frontier);
+  --color-pivot: var(--viz-pivot);
+}
+
+@layer base {
+  * {
+    border-color: var(--subtle);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+}
+
+/* Honour prefers-reduced-motion globally; the player also has an explicit reduced mode. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
