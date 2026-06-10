@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Scan the app source and the workspace design-system package for class names. */
 @source "../";

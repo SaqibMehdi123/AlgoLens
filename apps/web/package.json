@@ -14,15 +14,20 @@
   "dependencies": {
     "@algolens/algo-core": "workspace:*",
     "@algolens/api-contracts": "workspace:*",
+    "@algolens/content": "workspace:*",
     "@algolens/ui": "workspace:*",
     "@algolens/viz-engine": "workspace:*",
     "lucide-react": "^0.468.0",
     "next": "15.1.6",
+    "next-mdx-remote": "^5.0.0",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "remark-gfm": "^4.0.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/node": "catalog:",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",

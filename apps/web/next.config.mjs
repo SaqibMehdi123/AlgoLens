@@ -6,6 +6,7 @@ const nextConfig = {
     "@algolens/viz-engine",
     "@algolens/ui",
     "@algolens/api-contracts",
+    "@algolens/content",
   ],
   // Lint is run as its own Turborepo task; don't fail the build on it here.
   eslint: { ignoreDuringBuilds: true },

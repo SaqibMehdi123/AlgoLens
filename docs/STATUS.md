@@ -29,14 +29,33 @@ Tracks progress against [06-implementation-roadmap.md](./06-implementation-roadm
   input controls, keyboard map, reduced-motion mode + aria-live captions, shareable URLs.
 - ✅ Landing page with a live, scrubbable hero merge-sort.
 
-## Next (not built this session)
+### Phase 2 — Learn pillar (core loop complete)
 
-- **Phase 1 polish:** Playwright e2e for PRD story #1, axe-core CI, Canvas renderer >300 elements,
-  run-your-own-code worker mode (A8).
-- **Phase 2 — Learn:** MDX pipeline, curriculum migration, lesson reader, 25 lessons.
+- ✅ MDX pipeline (next-mdx-remote RSC + remark-gfm) with allowlisted components only:
+  `<Viz/>` (embedded mini-player, opens at a meaningful frame, "open in playground" link),
+  `<Quiz/>` (complexity_pick / predict_output, wrong answer → **replay-at-step deep link** —
+  the docs/04 journey-2 signature move), `<Callout/>` (Insight/Warning/Try-it).
+- ✅ `@algolens/content`: typed curriculum manifest + 3 exemplar lessons (Big-O, Binary Search,
+  BFS) locking the template; invariant tests (quizCount matches MDX, algos registered, no raw
+  script/iframe, sub-1200-word budget, prerequisite integrity).
+- ✅ Lesson reader (docs/05 §5.5): 68ch prose column, sticky scroll-progress bar, track outline
+  with completion ticks, completion = scroll ≥ 90% + all quizzes passed → +XP completion card,
+  next-lesson CTA. `/learn` catalog + track overview with prerequisite locks.
+- ✅ Dashboard: real continue-learning card + XP total (device-local).
+- ✅ API: GET /api/v1/tracks, GET /api/v1/lessons/:slug (Zod-validated responses); progress PUT +
+  quiz-attempts POST validate and return 501 problem+json pending auth+DB (**ADR-0003**).
+- ⛔️ Deferred: server-side progress (needs Auth.js + Postgres), remaining ~22 Foundations
+  lessons (content sprint), Playwright e2e for PRD story #2, search indexing checks.
+
+## Next (not built yet)
+
+- **Phase 1/2 polish:** Playwright e2e (PRD stories #1, #2), axe-core CI, Canvas renderer
+  >300 elements, run-your-own-code worker mode (A8), content sprint to 25 lessons.
 - **Phase 3 — Complexity Lab:** static analyzer + empirical worker + honesty contract.
 - **Phase 4 — Practice:** problem workspace, server judge, malicious-submission suite, Judge0.
-- **Phase 5 — Retention:** SM-2 reviews, XP/streaks/badges, share OG images.
+- **Phase 5 — Retention:** SM-2 reviews, streaks/badges, share OG images.
 - **Phase 6 — Hardening:** security/perf/ops passes.
 
-See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md), [0002-step-vocabulary](./adr/0002-step-vocabulary.md).
+See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md),
+[0002-step-vocabulary](./adr/0002-step-vocabulary.md),
+[0003-client-side-progress](./adr/0003-client-side-progress.md).
