@@ -1,0 +1,26 @@
+{
+  "name": "@algolens/complexity",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./static": "./src/static/analyze.ts",
+    "./empirical": "./src/empirical/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@babel/parser": "^7.26.5",
+    "@babel/types": "^7.26.5"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
