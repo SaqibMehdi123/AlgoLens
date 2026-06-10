@@ -1,0 +1,12 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Shared dependency versions referenced as "catalog:" in package manifests.
+catalog:
+  typescript: ^5.7.2
+  vitest: ^2.1.8
+  "@types/node": ^22.10.2
+  zod: ^3.24.1
+  drizzle-orm: ^0.38.3
+  drizzle-kit: ^0.30.1
