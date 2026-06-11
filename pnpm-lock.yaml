@@ -77,6 +77,9 @@ importers:
       '@algolens/viz-engine':
         specifier: workspace:*
         version: link:../../packages/viz-engine
+      '@algolens/worker':
+        specifier: workspace:*
+        version: link:../worker
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.0.0)
@@ -98,6 +101,9 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.0.0
@@ -133,6 +139,9 @@ importers:
         specifier: workspace:*
         version: link:../../packages/db
     devDependencies:
+      '@algolens/content':
+        specifier: workspace:*
+        version: link:../../content
       '@types/node':
         specifier: 'catalog:'
         version: 22.19.20
