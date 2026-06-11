@@ -35,3 +35,15 @@ pnpm-debug.log*
 
 # misc
 .vercel/
+Thumbs.db
+
+# private planning docs (kept locally, never published)
+/files/
+/07-ai-build-prompts.md
+/docs/01-PRD-product-requirements.md
+/docs/02-TRD-technical-requirements.md
+/docs/03-backend-schema.md
+/docs/04-app-flow.md
+/docs/05-uiux-design-prompt.md
+/docs/06-implementation-roadmap.md
+/docs/07-ai-build-prompts.md

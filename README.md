@@ -5,8 +5,9 @@
 A production-grade platform for learning data structures & algorithms through interactive
 visualizations, an honest complexity analyzer, and sandboxed practice problems.
 
-Built as a pnpm + Turborepo monorepo. The authoritative specs live in [`docs/`](./docs);
-[`CLAUDE.md`](./CLAUDE.md) is the engineering contract every change is held to.
+Built as a pnpm + Turborepo monorepo against a fixed PRD/TRD spec pack.
+[`CLAUDE.md`](./CLAUDE.md) is the engineering contract every change is held to;
+decisions are recorded as ADRs in [`docs/adr/`](./docs/adr).
 
 ## The four pillars
 
@@ -51,5 +52,6 @@ pnpm dev          # boots apps/web on http://localhost:3000
 
 ## Build order
 
-The build follows [`docs/06-implementation-roadmap.md`](./docs/06-implementation-roadmap.md)
-phase by phase. Current status is tracked in [`docs/STATUS.md`](./docs/STATUS.md).
+The build follows the implementation roadmap phase by phase: foundation → visualization
+engine → Learn → Complexity Lab → Practice → retention → hardening. Current status is
+tracked in [`docs/STATUS.md`](./docs/STATUS.md).

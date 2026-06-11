@@ -1,6 +1,6 @@
 # Build status
 
-Tracks progress against [06-implementation-roadmap.md](./06-implementation-roadmap.md).
+Tracks progress against the implementation roadmap (private planning docs).
 
 ## Done
 
