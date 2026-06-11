@@ -1,18 +1,31 @@
-import { ComingSoon } from "@/components/coming-soon";
+import { problems } from "@algolens/content";
+import { ProblemList } from "@/components/practice/problem-list";
 
-export const metadata = { title: "Practice" };
+export const metadata = {
+  title: "Practice",
+  description:
+    "Solve DSA problems in the browser: instant sample runs, sandboxed judging with per-case verdicts.",
+};
 
 export default function PracticePage() {
+  const summaries = problems.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    difficulty: p.difficulty,
+    tags: p.tags,
+    lessonSlug: p.lessonSlug,
+  }));
+
   return (
-    <ComingSoon
-      pillar="Practice"
-      phase="Phase 4 · Roadmap"
-      blurb="Problems with a sandboxed judge: write code in Monaco, run sample tests instantly in a Web Worker, then submit for server-side judging with per-case verdicts."
-      bullets={[
-        "Monaco workspace; client-side sample runs in an exec-worker (step-capped)",
-        "Server judge: isolated vm context, 2s/128MB, AC/WA/TLE/MLE/RE/CE verdicts",
-        "Hidden test cases never serialized to the client; SSE live status",
-      ]}
-    />
+    <div className="py-10">
+      <header className="mb-8">
+        <h1 className="text-3xl font-semibold tracking-tight">Practice</h1>
+        <p className="mt-2 max-w-[64ch] text-secondary">
+          {problems.length} problems linked to the Foundations track. Samples run instantly in your
+          browser; submissions are judged in an isolated sandbox with hidden test cases.
+        </p>
+      </header>
+      <ProblemList problems={summaries} />
+    </div>
   );
 }

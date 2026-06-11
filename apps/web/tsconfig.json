@@ -9,6 +9,7 @@
     "jsx": "preserve",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"

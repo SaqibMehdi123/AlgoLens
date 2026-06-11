@@ -8,6 +8,7 @@ const nextConfig = {
     "@algolens/api-contracts",
     "@algolens/complexity",
     "@algolens/content",
+    "@algolens/worker",
   ],
   // Lint is run as its own Turborepo task; don't fail the build on it here.
   eslint: { ignoreDuringBuilds: true },

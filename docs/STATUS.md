@@ -72,14 +72,35 @@ Tracks progress against [06-implementation-roadmap.md](./06-implementation-roadm
   isolated to one component), AI layer (C5, P1), persistence + Redis rate limits (needs infra),
   Pyodide/Python (C7).
 
+### Phase 4 — Practice pillar (core complete; security-critical parts tested)
+
+- ✅ **Malicious-submission suite written FIRST and green**: infinite loop→TLE, fork/spawn→RE
+  (no shell output), fs read→RE (no file contents), network→RE, ~100MB stdout→bounded excerpt,
+  deep recursion→RE, memory bomb→contained, parent env canary never leaks (clean child env +
+  no host objects cross the vm boundary), syntax garbage→CE.
+- ✅ JS judge v1 (`apps/worker/src/judge`): fresh child process per case with `--permission`
+  (fs/child_process/workers denied) + 128MB heap cap + in-context console shim + vm timeout +
+  parent SIGKILL watchdog + output caps; verdicts AC/WA/TLE/MLE/RE/CE; normalized comparison.
+- ✅ **15 problems** authored, linked to lessons (lessons link back via practiceSlug); every
+  reference solution is judge-verified against its authored expected outputs in CI.
+- ✅ Submission flow: POST /api/v1/submissions (Zod + idempotency key) → in-memory store
+  (ADR-0004) → direct judge → **SSE per-case ticks** with snapshot-on-connect reconnect safety.
+- ✅ **Hidden-case leak tests** (rule 6 acceptance): problem payloads grepped for every hidden
+  input/expected; submission views redact hidden-case output to verdict-only (echo-attack test).
+- ✅ Workspace UI (docs/05 §5.6): statement/submissions tabs, editor, client-side sample runs in
+  the exec-worker (5s kill), live per-case tick row, verdict card, AC → solved + "Check its
+  complexity →" code handoff into the Lab.
+- ⛔️ Deferred: Judge0 CE on isolated VM (TRD §7 — explicitly a separate provisioning session),
+  Python, editorials content, DB-backed submissions + rate limits, Playwright e2e for story #4.
+
 ## Next (not built yet)
 
-- **Phase 1/2/3 polish:** Playwright e2e (PRD stories #1–#3), axe-core CI, Canvas renderer
-  >300 elements, run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap.
-- **Phase 4 — Practice:** problem workspace, server judge, malicious-submission suite, Judge0.
+- **Polish:** Playwright e2e (PRD stories #1–#4), axe-core CI, Canvas renderer >300 elements,
+  run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap, editorials.
 - **Phase 5 — Retention:** SM-2 reviews, streaks/badges, share OG images.
-- **Phase 6 — Hardening:** security/perf/ops passes.
+- **Phase 6 — Hardening:** security/perf/ops passes; Judge0 CE provisioning.
 
 See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md),
 [0002-step-vocabulary](./adr/0002-step-vocabulary.md),
-[0003-client-side-progress](./adr/0003-client-side-progress.md).
+[0003-client-side-progress](./adr/0003-client-side-progress.md),
+[0004-direct-judge-in-memory-submissions](./adr/0004-direct-judge-in-memory-submissions.md).

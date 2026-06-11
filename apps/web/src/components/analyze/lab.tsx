@@ -51,6 +51,19 @@ export function ComplexityLab() {
 
   useEffect(() => cleanup, []);
 
+  // Accept code handed off from an accepted Practice submission ("Check its complexity →").
+  useEffect(() => {
+    try {
+      const handoff = sessionStorage.getItem("algolens-lab-code");
+      if (handoff) {
+        setCode(handoff);
+        sessionStorage.removeItem("algolens-lab-code");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   function analyze() {
     cleanup();
     setPhase("running");
