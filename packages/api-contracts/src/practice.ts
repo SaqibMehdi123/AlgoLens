@@ -1,12 +1,20 @@
 import { z } from "zod";
-import { codeLanguage, difficulty, submissionStatus } from "./common";
+import { difficulty, submissionStatus } from "./common";
 
-/** Practice contracts (TRD §8). Problem detail STRUCTURALLY cannot carry hidden cases (rule 6). */
+/** Practice contracts (TRD §8), LeetCode "implement a function" style. */
 
+/** The five editor languages. JS/TS are judged locally; the rest need the Judge0 host (TRD §7). */
+export const practiceLanguage = z.enum(["javascript", "typescript", "python", "cpp", "java"]);
+export type PracticeLanguage = z.infer<typeof practiceLanguage>;
+
+export const compareMode = z.enum(["exact", "unordered"]);
+
+/** Structured, language-agnostic test case: positional args + expected return value. */
 export const sampleCase = z.object({
-  input: z.string(),
-  expected: z.string(),
+  args: z.array(z.unknown()),
+  expected: z.unknown(),
 });
+export type SampleCase = z.infer<typeof sampleCase>;
 
 export const problemSummary = z.object({
   slug: z.string(),
@@ -19,9 +27,13 @@ export type ProblemSummary = z.infer<typeof problemSummary>;
 
 export const problemDetail = problemSummary.extend({
   statementMd: z.string(),
-  starterCode: z.string(),
+  functionName: z.string(),
+  signature: z.string(),
+  compare: compareMode,
   timeLimitMs: z.number().int(),
-  /** PUBLIC sample cases only — the schema has no field for hidden cases by design. */
+  /** Generated starter stub per language. */
+  starterCode: z.record(practiceLanguage, z.string()),
+  /** PUBLIC sample cases only — the schema has no field for hidden cases (rule 6). */
   samples: z.array(sampleCase),
   hiddenCaseCount: z.number().int().min(0),
 });
@@ -30,7 +42,7 @@ export type ProblemDetail = z.infer<typeof problemDetail>;
 /** POST /api/v1/submissions — idempotency key prevents double submits (TRD §7). */
 export const submissionCreate = z.object({
   problemSlug: z.string().min(1),
-  language: codeLanguage.default("javascript"),
+  language: practiceLanguage.default("javascript"),
   sourceCode: z.string().min(1).max(64_000),
   idempotencyKey: z.string().min(8).max(128),
 });
@@ -41,7 +53,7 @@ export const caseResultPublic = z.object({
   isSample: z.boolean(),
   status: submissionStatus,
   runtimeMs: z.number().nullable(),
-  /** Excerpts only for SAMPLE cases — hidden-case output is redacted to verdict-only. */
+  /** Returned value / error excerpt — only for SAMPLE cases; hidden cases are verdict-only. */
   stdoutExcerpt: z.string().nullable(),
   stderrExcerpt: z.string().nullable(),
 });
@@ -59,7 +71,6 @@ export const submissionView = z.object({
 });
 export type SubmissionView = z.infer<typeof submissionView>;
 
-/** SSE event payloads on /api/v1/submissions/:id/events. */
 export const submissionEvent = z.discriminatedUnion("type", [
   z.object({ type: z.literal("snapshot"), submission: submissionView }),
   z.object({ type: z.literal("case"), result: caseResultPublic }),

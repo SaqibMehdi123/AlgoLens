@@ -1,27 +1,30 @@
 /**
- * Every problem's reference solution must produce the authored `expected` output for EVERY
- * case, through the real judge. This is the executable form of "reference solutions generate
- * expected outputs" — an expected value that the reference cannot reproduce fails CI.
+ * Every problem's JS reference solution must return the authored `expected` value for EVERY case
+ * through the real judge (the new function harness). A reference that can't reproduce an expected
+ * value fails CI — keeping problems honest.
  */
 import { problems } from "@algolens/content";
 import { describe, expect, it } from "vitest";
 import { judgeSubmission } from "../src/judge";
 
-describe("reference solutions generate the expected outputs", () => {
+describe("reference solutions pass their own cases", () => {
   it.each(problems.map((p) => [p.slug, p] as const))(
-    "%s reference passes all of its own cases",
+    "%s reference is accepted",
     { timeout: 60_000 },
     async (_slug, problem) => {
       const r = await judgeSubmission({
+        language: "javascript",
         sourceCode: problem.referenceSolution,
-        cases: problem.cases.map((c) => ({ input: c.input, expected: c.expected })),
+        functionName: problem.functionName,
+        compare: problem.compare,
+        cases: problem.cases.map((c) => ({ args: c.args, expected: c.expected })),
         timeLimitMs: problem.timeLimitMs,
       });
-      const failing = r.cases
+      const failures = r.cases
         .map((c, i) => ({ ...c, i }))
         .filter((c) => c.status !== "accepted")
         .map((c) => `case ${c.i}: ${c.status} (got ${JSON.stringify(c.stdoutExcerpt)})`);
-      expect(r.verdict, failing.join("; ")).toBe("accepted");
+      expect(r.verdict, failures.join("; ")).toBe("accepted");
       expect(r.passedCount).toBe(problem.cases.length);
     },
   );

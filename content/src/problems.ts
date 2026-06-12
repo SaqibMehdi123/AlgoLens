@@ -1,19 +1,21 @@
 /**
- * Practice problems (PRD D2) — content-in-repo, mirroring docs/03 §5 shapes. Conventions:
- *  - The submission receives the raw input as the global string `input` and prints with
- *    `console.log` — same harness semantics client-side (exec-worker) and server-side (judge).
- *  - `isSample: true` cases are public (shown in the workspace, run client-side).
- *    Hidden cases NEVER leave the server in any response shape (rule 6 — tested).
- *  - `expected` values are verified against the reference solutions by the judge test suite;
- *    a mismatch fails CI, so expecteds cannot drift from the solutions that generate them.
+ * Practice problems (PRD D2) — LeetCode-style "implement this function". Each problem declares a
+ * type-DSL signature; starter stubs for all five languages are generated from it (see starter.ts).
+ *
+ *  - Test cases are STRUCTURED (`args` + `expected` return value), language-agnostic.
+ *  - `isSample: true` cases are public (run client-side); hidden cases NEVER leave the server
+ *    (rule 6 — tested). `referenceSolution` is JS, verified against every case by the judge in CI.
+ *  - `compare`: "exact" (deep-equal) or "unordered" (order-insensitive array comparison).
  */
+import { generateStarter, signatureString, type Json, type Language, type Param } from "./starter";
+
 export type ProblemDifficulty = "intro" | "easy" | "medium" | "hard";
+export type CompareMode = "exact" | "unordered";
 
 export interface TestCaseDef {
-  input: string;
-  expected: string;
+  args: Json[];
+  expected: Json;
   isSample: boolean;
-  weight?: number;
 }
 
 export interface ProblemDef {
@@ -21,23 +23,22 @@ export interface ProblemDef {
   title: string;
   difficulty: ProblemDifficulty;
   tags: string[];
-  /** Markdown statement (rendered server-side; no embedded components). */
-  statementMd: string;
-  starterCode: string;
-  /** Reference solution — generates/verifies expected outputs via the judge. */
-  referenceSolution: string;
-  timeLimitMs: number;
-  /** Lesson this problem practices (lessons link back via practiceSlug). */
   lessonSlug: string | null;
+  timeLimitMs: number;
+  statementMd: string;
+  functionName: string;
+  params: Param[];
+  returnType: string;
+  compare: CompareMode;
+  /** JS reference solution — generates/verifies expected outputs via the judge. */
+  referenceSolution: string;
   cases: TestCaseDef[];
 }
 
-const STARTER = `// \`input\` is the problem input as a string.
-// Parse it, compute the answer, print it with console.log.
-const lines = input.trim().split("\\n");
-`;
+const s = (isSample: boolean) => isSample; // readability in case lists
 
 export const problems: ProblemDef[] = [
+  // ============================= ARRAYS =============================
   {
     slug: "sum-of-array",
     title: "Sum of Array",
@@ -45,24 +46,18 @@ export const problems: ProblemDef[] = [
     tags: ["arrays", "loops"],
     lessonSlug: "big-o-notation",
     timeLimitMs: 2000,
-    statementMd: `Given a list of integers, print their sum.
-
-**Input** — one line: space-separated integers.
-
-**Output** — a single integer: the sum.
-
-This is the canonical O(n) single pass: touch every element exactly once.`,
-    starterCode: STARTER,
-    referenceSolution: `const nums = input.trim().split(/\\s+/).map(Number);
-let s = 0;
-for (let i = 0; i < nums.length; i++) s += nums[i];
-console.log(s);`,
+    statementMd: "Return the sum of all integers in `nums`. The canonical O(n) single pass.",
+    functionName: "sumArray",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function sumArray(nums) {\n  let total = 0;\n  for (const v of nums) total += v;\n  return total;\n}`,
     cases: [
-      { input: "1 2 3 4 5", expected: "15", isSample: true },
-      { input: "10 -3 7", expected: "14", isSample: true },
-      { input: "42", expected: "42", isSample: false },
-      { input: "-1 -2 -3 -4", expected: "-10", isSample: false },
-      { input: "1000000 1000000 1000000", expected: "3000000", isSample: false },
+      { args: [[1, 2, 3, 4, 5]], expected: 15, isSample: s(true) },
+      { args: [[10, -3, 7]], expected: 14, isSample: s(true) },
+      { args: [[42]], expected: 42, isSample: s(false) },
+      { args: [[-1, -2, -3, -4]], expected: -10, isSample: s(false) },
+      { args: [[]], expected: 0, isSample: s(false) },
     ],
   },
   {
@@ -72,245 +67,59 @@ console.log(s);`,
     tags: ["arrays", "loops"],
     lessonSlug: "big-o-notation",
     timeLimitMs: 2000,
-    statementMd: `Print the largest integer in the list.
-
-**Input** — one line: space-separated integers (at least one).
-
-**Output** — the maximum value.`,
-    starterCode: STARTER,
-    referenceSolution: `const nums = input.trim().split(/\\s+/).map(Number);
-let m = nums[0];
-for (const v of nums) if (v > m) m = v;
-console.log(m);`,
+    statementMd: "Return the largest integer in `nums` (at least one element).",
+    functionName: "maxElement",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function maxElement(nums) {\n  let m = nums[0];\n  for (const v of nums) if (v > m) m = v;\n  return m;\n}`,
     cases: [
-      { input: "3 1 4 1 5", expected: "5", isSample: true },
-      { input: "-7 -3 -9", expected: "-3", isSample: true },
-      { input: "8", expected: "8", isSample: false },
-      { input: "2 2 2 2", expected: "2", isSample: false },
-      { input: "0 -1 999999 5", expected: "999999", isSample: false },
+      { args: [[3, 1, 4, 1, 5]], expected: 5, isSample: s(true) },
+      { args: [[-7, -3, -9]], expected: -3, isSample: s(true) },
+      { args: [[8]], expected: 8, isSample: s(false) },
+      { args: [[2, 2, 2]], expected: 2, isSample: s(false) },
+      { args: [[0, -1, 999999, 5]], expected: 999999, isSample: s(false) },
     ],
   },
   {
-    slug: "reverse-string",
-    title: "Reverse a String",
+    slug: "running-sum",
+    title: "Running Sum",
     difficulty: "intro",
-    tags: ["strings"],
-    lessonSlug: null,
-    timeLimitMs: 2000,
-    statementMd: `Print the input string reversed.
-
-**Input** — one line: a string without spaces.
-
-**Output** — the reversed string.`,
-    starterCode: STARTER,
-    referenceSolution: `const s = input.trim();
-let out = "";
-for (let i = s.length - 1; i >= 0; i--) out += s[i];
-console.log(out);`,
-    cases: [
-      { input: "hello", expected: "olleh", isSample: true },
-      { input: "ab", expected: "ba", isSample: true },
-      { input: "x", expected: "x", isSample: false },
-      { input: "racecar", expected: "racecar", isSample: false },
-      { input: "AlgoLens", expected: "sneLoglA", isSample: false },
-    ],
-  },
-  {
-    slug: "count-vowels",
-    title: "Count Vowels",
-    difficulty: "intro",
-    tags: ["strings", "loops"],
-    lessonSlug: null,
-    timeLimitMs: 2000,
-    statementMd: `Count the vowels (a, e, i, o, u — lowercase) in the input string.
-
-**Input** — one line: a lowercase string.
-
-**Output** — the number of vowels.`,
-    starterCode: STARTER,
-    referenceSolution: `const s = input.trim();
-let c = 0;
-for (const ch of s) if ("aeiou".includes(ch)) c++;
-console.log(c);`,
-    cases: [
-      { input: "algorithm", expected: "3", isSample: true },
-      { input: "xyz", expected: "0", isSample: true },
-      { input: "aeiou", expected: "5", isSample: false },
-      { input: "complexity", expected: "3", isSample: false },
-      { input: "queueing", expected: "5", isSample: false },
-    ],
-  },
-  {
-    slug: "fizzbuzz-range",
-    title: "FizzBuzz Range",
-    difficulty: "intro",
-    tags: ["loops", "conditionals"],
+    tags: ["arrays", "prefix-sum"],
     lessonSlug: "big-o-notation",
     timeLimitMs: 2000,
-    statementMd: `For each integer from 1 to n, print \`Fizz\` if divisible by 3, \`Buzz\` if divisible
-by 5, \`FizzBuzz\` if divisible by both, otherwise the number itself — one per line.
-
-**Input** — one line: the integer n (1 ≤ n ≤ 1000).
-
-**Output** — n lines.`,
-    starterCode: STARTER,
-    referenceSolution: `const n = Number(input.trim());
-for (let i = 1; i <= n; i++) {
-  if (i % 15 === 0) console.log("FizzBuzz");
-  else if (i % 3 === 0) console.log("Fizz");
-  else if (i % 5 === 0) console.log("Buzz");
-  else console.log(i);
-}`,
+    statementMd: "Return the running (prefix) sum: `out[i] = nums[0] + … + nums[i]`.",
+    functionName: "runningSum",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function runningSum(nums) {\n  const out = [];\n  let acc = 0;\n  for (const v of nums) { acc += v; out.push(acc); }\n  return out;\n}`,
     cases: [
-      { input: "5", expected: "1\n2\nFizz\n4\nBuzz", isSample: true },
-      { input: "3", expected: "1\n2\nFizz", isSample: true },
-      { input: "1", expected: "1", isSample: false },
-      { input: "15", expected: "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz", isSample: false },
+      { args: [[1, 2, 3, 4]], expected: [1, 3, 6, 10], isSample: s(true) },
+      { args: [[3, 1, 2, 10, 1]], expected: [3, 4, 6, 16, 17], isSample: s(true) },
+      { args: [[5]], expected: [5], isSample: s(false) },
+      { args: [[-1, 1, -1, 1]], expected: [-1, 0, -1, 0], isSample: s(false) },
     ],
   },
   {
-    slug: "find-index",
-    title: "Find the Target (Linear Search)",
-    difficulty: "easy",
-    tags: ["arrays", "searching"],
-    lessonSlug: "big-o-notation",
-    timeLimitMs: 2000,
-    statementMd: `Print the index of the first occurrence of the target, or \`-1\` if absent.
-
-**Input** — line 1: space-separated integers. Line 2: the target.
-
-**Output** — the 0-based index, or -1.`,
-    starterCode: STARTER,
-    referenceSolution: `const [arrLine, tLine] = input.trim().split("\\n");
-const nums = arrLine.trim().split(/\\s+/).map(Number);
-const target = Number(tLine);
-let idx = -1;
-for (let i = 0; i < nums.length; i++) { if (nums[i] === target) { idx = i; break; } }
-console.log(idx);`,
-    cases: [
-      { input: "4 8 15 16 23 42\n16", expected: "3", isSample: true },
-      { input: "1 2 3\n9", expected: "-1", isSample: true },
-      { input: "7 7 7\n7", expected: "0", isSample: false },
-      { input: "5\n5", expected: "0", isSample: false },
-      { input: "-3 0 12\n12", expected: "2", isSample: false },
-    ],
-  },
-  {
-    slug: "binary-search-position",
-    title: "Binary Search Position",
-    difficulty: "easy",
-    tags: ["searching", "binary-search"],
-    lessonSlug: "binary-search",
-    timeLimitMs: 2000,
-    statementMd: `The array is **sorted ascending** with distinct values. Print the index of the
-target, or \`-1\` if absent — in O(log n), the way the [Binary Search lesson](/learn/dsa-foundations/binary-search) does it.
-
-**Input** — line 1: sorted space-separated integers. Line 2: the target.
-
-**Output** — the 0-based index, or -1.`,
-    starterCode: STARTER,
-    referenceSolution: `const [arrLine, tLine] = input.trim().split("\\n");
-const a = arrLine.trim().split(/\\s+/).map(Number);
-const t = Number(tLine);
-let lo = 0, hi = a.length - 1, ans = -1;
-while (lo <= hi) {
-  const mid = Math.floor((lo + hi) / 2);
-  if (a[mid] === t) { ans = mid; break; }
-  if (a[mid] < t) lo = mid + 1; else hi = mid - 1;
-}
-console.log(ans);`,
-    cases: [
-      { input: "4 8 15 16 23 42 56 71\n23", expected: "4", isSample: true },
-      { input: "1 3 5 7\n4", expected: "-1", isSample: true },
-      { input: "10\n10", expected: "0", isSample: false },
-      { input: "1 2 3 4 5 6 7 8 9\n9", expected: "8", isSample: false },
-      { input: "1 2 3 4 5 6 7 8 9\n1", expected: "0", isSample: false },
-      { input: "-50 -10 0 30\n-10", expected: "1", isSample: false },
-    ],
-  },
-  {
-    slug: "first-duplicate",
-    title: "First Duplicate",
-    difficulty: "easy",
-    tags: ["arrays", "hashing"],
-    lessonSlug: null,
-    timeLimitMs: 2000,
-    statementMd: `Print the first value that appears a second time while scanning left to right,
-or \`-1\` if all values are distinct. A Set makes this a single O(n) pass.
-
-**Input** — one line: space-separated integers.
-
-**Output** — the first repeated value, or -1.`,
-    starterCode: STARTER,
-    referenceSolution: `const nums = input.trim().split(/\\s+/).map(Number);
-const seen = new Set();
-let ans = -1;
-for (const v of nums) { if (seen.has(v)) { ans = v; break; } seen.add(v); }
-console.log(ans);`,
-    cases: [
-      { input: "2 1 3 5 3 2", expected: "3", isSample: true },
-      { input: "1 2 3 4", expected: "-1", isSample: true },
-      { input: "9 9", expected: "9", isSample: false },
-      { input: "5 4 5 4", expected: "5", isSample: false },
-      { input: "1", expected: "-1", isSample: false },
-    ],
-  },
-  {
-    slug: "two-sum-indices",
-    title: "Two Sum (Indices)",
-    difficulty: "easy",
+    slug: "contains-duplicate",
+    title: "Contains Duplicate",
+    difficulty: "intro",
     tags: ["arrays", "hashing"],
     lessonSlug: "big-o-notation",
     timeLimitMs: 2000,
-    statementMd: `Print the indices \`i j\` (i < j) of the two numbers that add to the target.
-Exactly one solution exists. The nested-loop version is O(n²) — after you get Accepted, paste
-your code into the [Complexity Lab](/analyze) and see; a Map gets it to O(n).
-
-**Input** — line 1: space-separated integers. Line 2: the target.
-
-**Output** — two indices separated by a space.`,
-    starterCode: STARTER,
-    referenceSolution: `const [arrLine, tLine] = input.trim().split("\\n");
-const nums = arrLine.trim().split(/\\s+/).map(Number);
-const target = Number(tLine);
-const seen = new Map();
-for (let j = 0; j < nums.length; j++) {
-  const need = target - nums[j];
-  if (seen.has(need)) { console.log(seen.get(need) + " " + j); break; }
-  seen.set(nums[j], j);
-}`,
+    statementMd: "Return `true` if any value appears at least twice, else `false`. A Set gives O(n).",
+    functionName: "containsDuplicate",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "boolean",
+    compare: "exact",
+    referenceSolution: `function containsDuplicate(nums) {\n  const seen = new Set();\n  for (const v of nums) { if (seen.has(v)) return true; seen.add(v); }\n  return false;\n}`,
     cases: [
-      { input: "2 7 11 15\n9", expected: "0 1", isSample: true },
-      { input: "3 2 4\n6", expected: "1 2", isSample: true },
-      { input: "3 3\n6", expected: "0 1", isSample: false },
-      { input: "5 -2 9 1\n-1", expected: "1 3", isSample: false },
-      { input: "1 2 3 4 5 6\n11", expected: "4 5", isSample: false },
-    ],
-  },
-  {
-    slug: "is-palindrome",
-    title: "Palindrome Check",
-    difficulty: "easy",
-    tags: ["strings", "two-pointers"],
-    lessonSlug: null,
-    timeLimitMs: 2000,
-    statementMd: `Print \`true\` if the string reads the same forwards and backwards, else \`false\`.
-Two pointers from the ends meet in the middle — O(n) time, O(1) space.
-
-**Input** — one line: a lowercase string.
-
-**Output** — \`true\` or \`false\`.`,
-    starterCode: STARTER,
-    referenceSolution: `const s = input.trim();
-let l = 0, r = s.length - 1, ok = true;
-while (l < r) { if (s[l] !== s[r]) { ok = false; break; } l++; r--; }
-console.log(ok);`,
-    cases: [
-      { input: "racecar", expected: "true", isSample: true },
-      { input: "hello", expected: "false", isSample: true },
-      { input: "a", expected: "true", isSample: false },
-      { input: "abba", expected: "true", isSample: false },
-      { input: "abca", expected: "false", isSample: false },
+      { args: [[1, 2, 3, 1]], expected: true, isSample: s(true) },
+      { args: [[1, 2, 3, 4]], expected: false, isSample: s(true) },
+      { args: [[1]], expected: false, isSample: s(false) },
+      { args: [[7, 7]], expected: true, isSample: s(false) },
+      { args: [[]], expected: false, isSample: s(false) },
     ],
   },
   {
@@ -320,117 +129,18 @@ console.log(ok);`,
     tags: ["arrays"],
     lessonSlug: null,
     timeLimitMs: 2000,
-    statementMd: `Print the second-largest **distinct** value. At least two distinct values exist.
-One pass, two trackers — no sort needed.
-
-**Input** — one line: space-separated integers.
-
-**Output** — the second-largest distinct value.`,
-    starterCode: STARTER,
-    referenceSolution: `const nums = input.trim().split(/\\s+/).map(Number);
-let first = -Infinity, second = -Infinity;
-for (const v of nums) {
-  if (v > first) { second = first; first = v; }
-  else if (v < first && v > second) { second = v; }
-}
-console.log(second);`,
+    statementMd: "Return the second-largest **distinct** value (at least two distinct values exist).",
+    functionName: "secondLargest",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function secondLargest(nums) {\n  let first = -Infinity, second = -Infinity;\n  for (const v of nums) {\n    if (v > first) { second = first; first = v; }\n    else if (v < first && v > second) { second = v; }\n  }\n  return second;\n}`,
     cases: [
-      { input: "3 9 5 9 1", expected: "5", isSample: true },
-      { input: "1 2", expected: "1", isSample: true },
-      { input: "10 10 9", expected: "9", isSample: false },
-      { input: "-5 -2 -9", expected: "-5", isSample: false },
-      { input: "100 50 100 99", expected: "99", isSample: false },
-    ],
-  },
-  {
-    slug: "merge-two-sorted",
-    title: "Merge Two Sorted Lists",
-    difficulty: "easy",
-    tags: ["arrays", "sorting", "two-pointers"],
-    lessonSlug: "binary-search",
-    timeLimitMs: 2000,
-    statementMd: `Merge two sorted lists into one sorted line — the merge step of merge sort,
-in O(n + m) with two pointers (no sorting allowed conceptually!).
-
-**Input** — line 1: first sorted list. Line 2: second sorted list (either may be empty).
-
-**Output** — all values merged, space-separated.`,
-    starterCode: STARTER,
-    referenceSolution: `const ls = input.split("\\n");
-const a = (ls[0] ?? "").trim() === "" ? [] : ls[0].trim().split(/\\s+/).map(Number);
-const b = (ls[1] ?? "").trim() === "" ? [] : ls[1].trim().split(/\\s+/).map(Number);
-const out = [];
-let i = 0, j = 0;
-while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);
-while (i < a.length) out.push(a[i++]);
-while (j < b.length) out.push(b[j++]);
-console.log(out.join(" "));`,
-    cases: [
-      { input: "1 3 5\n2 4 6", expected: "1 2 3 4 5 6", isSample: true },
-      { input: "1 2\n3 4", expected: "1 2 3 4", isSample: true },
-      { input: "5\n1 9", expected: "1 5 9", isSample: false },
-      { input: "2 2\n2", expected: "2 2 2", isSample: false },
-      { input: "-3 0 3\n-2 2", expected: "-3 -2 0 2 3", isSample: false },
-    ],
-  },
-  {
-    slug: "missing-number",
-    title: "Missing Number",
-    difficulty: "easy",
-    tags: ["arrays", "math"],
-    lessonSlug: "binary-search",
-    timeLimitMs: 2000,
-    statementMd: `The list contains every integer from 0 to n exactly once — except one. Print the
-missing one. The sum formula n(n+1)/2 solves it in O(n) time and O(1) space.
-
-**Input** — one line: n space-separated integers (the range is 0..n).
-
-**Output** — the missing integer.`,
-    starterCode: STARTER,
-    referenceSolution: `const nums = input.trim().split(/\\s+/).map(Number);
-const n = nums.length;
-let sum = 0;
-for (const v of nums) sum += v;
-console.log((n * (n + 1)) / 2 - sum);`,
-    cases: [
-      { input: "3 0 1", expected: "2", isSample: true },
-      { input: "0 1", expected: "2", isSample: true },
-      { input: "1", expected: "0", isSample: false },
-      { input: "9 6 4 2 3 5 7 0 1", expected: "8", isSample: false },
-      { input: "0", expected: "1", isSample: false },
-    ],
-  },
-  {
-    slug: "count-pairs-with-sum",
-    title: "Count Pairs With Sum",
-    difficulty: "medium",
-    tags: ["arrays", "hashing"],
-    lessonSlug: "big-o-notation",
-    timeLimitMs: 2000,
-    statementMd: `Count the pairs (i, j) with i < j whose values add to the target. The obvious
-solution is the O(n²) double loop from the [Big-O lesson](/learn/dsa-foundations/big-o-notation);
-a frequency map does it in O(n). Both pass here — measure them in the Lab afterwards.
-
-**Input** — line 1: space-separated integers. Line 2: the target.
-
-**Output** — the number of pairs.`,
-    starterCode: STARTER,
-    referenceSolution: `const [arrLine, tLine] = input.trim().split("\\n");
-const nums = arrLine.trim().split(/\\s+/).map(Number);
-const target = Number(tLine);
-let c = 0;
-for (let i = 0; i < nums.length; i++) {
-  for (let j = i + 1; j < nums.length; j++) {
-    if (nums[i] + nums[j] === target) c++;
-  }
-}
-console.log(c);`,
-    cases: [
-      { input: "1 5 7 -1 5\n6", expected: "3", isSample: true },
-      { input: "1 1 1 1\n2", expected: "6", isSample: true },
-      { input: "2 4\n7", expected: "0", isSample: false },
-      { input: "0 0 0\n0", expected: "3", isSample: false },
-      { input: "3 -3 4 -4 7\n0", expected: "2", isSample: false },
+      { args: [[3, 9, 5, 9, 1]], expected: 5, isSample: s(true) },
+      { args: [[1, 2]], expected: 1, isSample: s(true) },
+      { args: [[10, 10, 9]], expected: 9, isSample: s(false) },
+      { args: [[-5, -2, -9]], expected: -5, isSample: s(false) },
+      { args: [[100, 50, 100, 99]], expected: 99, isSample: s(false) },
     ],
   },
   {
@@ -440,28 +150,786 @@ console.log(c);`,
     tags: ["arrays"],
     lessonSlug: null,
     timeLimitMs: 2000,
-    statementMd: `Rotate the list left by k positions and print it. k may exceed the length —
-take it modulo n. Slicing does it in O(n) without element-by-element shifting.
-
-**Input** — line 1: space-separated integers. Line 2: k (k ≥ 0).
-
-**Output** — the rotated list, space-separated.`,
-    starterCode: STARTER,
-    referenceSolution: `const [arrLine, kLine] = input.trim().split("\\n");
-const nums = arrLine.trim().split(/\\s+/).map(Number);
-const k = Number(kLine) % nums.length;
-const out = nums.slice(k).concat(nums.slice(0, k));
-console.log(out.join(" "));`,
+    statementMd: "Rotate `nums` left by `k` positions (`k` may exceed the length — take it mod n).",
+    functionName: "rotateLeft",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "k", type: "int" },
+    ],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function rotateLeft(nums, k) {\n  const n = nums.length;\n  if (n === 0) return [];\n  const sh = k % n;\n  return nums.slice(sh).concat(nums.slice(0, sh));\n}`,
     cases: [
-      { input: "1 2 3 4 5\n2", expected: "3 4 5 1 2", isSample: true },
-      { input: "1 2 3\n0", expected: "1 2 3", isSample: true },
-      { input: "1 2 3\n3", expected: "1 2 3", isSample: false },
-      { input: "1 2 3 4\n6", expected: "3 4 1 2", isSample: false },
-      { input: "7\n10", expected: "7", isSample: false },
+      { args: [[1, 2, 3, 4, 5], 2], expected: [3, 4, 5, 1, 2], isSample: s(true) },
+      { args: [[1, 2, 3], 0], expected: [1, 2, 3], isSample: s(true) },
+      { args: [[1, 2, 3], 3], expected: [1, 2, 3], isSample: s(false) },
+      { args: [[1, 2, 3, 4], 6], expected: [3, 4, 1, 2], isSample: s(false) },
+      { args: [[7], 10], expected: [7], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "move-zeroes",
+    title: "Move Zeroes",
+    difficulty: "easy",
+    tags: ["arrays", "two-pointers"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Move all `0`s to the end while keeping the order of the non-zero elements. Return the result.",
+    functionName: "moveZeroes",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function moveZeroes(nums) {\n  const out = [];\n  let zeros = 0;\n  for (const v of nums) { if (v === 0) zeros++; else out.push(v); }\n  while (zeros-- > 0) out.push(0);\n  return out;\n}`,
+    cases: [
+      { args: [[0, 1, 0, 3, 12]], expected: [1, 3, 12, 0, 0], isSample: s(true) },
+      { args: [[0, 0, 1]], expected: [1, 0, 0], isSample: s(true) },
+      { args: [[1, 2, 3]], expected: [1, 2, 3], isSample: s(false) },
+      { args: [[0]], expected: [0], isSample: s(false) },
+      { args: [[4, 0, 5, 0, 0, 6]], expected: [4, 5, 6, 0, 0, 0], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "best-time-stock",
+    title: "Best Time to Buy and Sell Stock",
+    difficulty: "easy",
+    tags: ["arrays", "dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "`prices[i]` is the price on day i. Return the max profit from one buy-then-sell, or `0`.",
+    functionName: "maxProfit",
+    params: [{ name: "prices", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function maxProfit(prices) {\n  let min = Infinity, best = 0;\n  for (const p of prices) { if (p < min) min = p; else if (p - min > best) best = p - min; }\n  return best;\n}`,
+    cases: [
+      { args: [[7, 1, 5, 3, 6, 4]], expected: 5, isSample: s(true) },
+      { args: [[7, 6, 4, 3, 1]], expected: 0, isSample: s(true) },
+      { args: [[1, 2]], expected: 1, isSample: s(false) },
+      { args: [[3]], expected: 0, isSample: s(false) },
+      { args: [[2, 4, 1, 9]], expected: 8, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "max-subarray",
+    title: "Maximum Subarray",
+    difficulty: "medium",
+    tags: ["arrays", "dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the largest sum of any contiguous non-empty subarray (Kadane's algorithm, O(n)).",
+    functionName: "maxSubArray",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function maxSubArray(nums) {\n  let best = nums[0], cur = nums[0];\n  for (let i = 1; i < nums.length; i++) {\n    cur = Math.max(nums[i], cur + nums[i]);\n    best = Math.max(best, cur);\n  }\n  return best;\n}`,
+    cases: [
+      { args: [[-2, 1, -3, 4, -1, 2, 1, -5, 4]], expected: 6, isSample: s(true) },
+      { args: [[1]], expected: 1, isSample: s(true) },
+      { args: [[5, 4, -1, 7, 8]], expected: 23, isSample: s(false) },
+      { args: [[-1, -2, -3]], expected: -1, isSample: s(false) },
+      { args: [[-5]], expected: -5, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "product-except-self",
+    title: "Product of Array Except Self",
+    difficulty: "medium",
+    tags: ["arrays", "prefix-sum"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return `out[i]` = product of all elements except `nums[i]`, without using division. O(n).",
+    functionName: "productExceptSelf",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function productExceptSelf(nums) {\n  const n = nums.length, out = new Array(n).fill(1);\n  let pre = 1;\n  for (let i = 0; i < n; i++) { out[i] = pre; pre *= nums[i]; }\n  let post = 1;\n  for (let i = n - 1; i >= 0; i--) { out[i] *= post; post *= nums[i]; }\n  return out;\n}`,
+    cases: [
+      { args: [[1, 2, 3, 4]], expected: [24, 12, 8, 6], isSample: s(true) },
+      { args: [[2, 3, 4]], expected: [12, 8, 6], isSample: s(true) },
+      { args: [[1, 1]], expected: [1, 1], isSample: s(false) },
+      { args: [[5, 0, 2]], expected: [0, 10, 0], isSample: s(false) },
+      { args: [[0, 0]], expected: [0, 0], isSample: s(false) },
+    ],
+  },
+
+  // ============================= STRINGS =============================
+  {
+    slug: "reverse-string",
+    title: "Reverse a String",
+    difficulty: "intro",
+    tags: ["strings"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the string `s` reversed (last character first).",
+    functionName: "reverseString",
+    params: [{ name: "s", type: "string" }],
+    returnType: "string",
+    compare: "exact",
+    referenceSolution: `function reverseString(s) {\n  let out = "";\n  for (let i = s.length - 1; i >= 0; i--) out += s[i];\n  return out;\n}`,
+    cases: [
+      { args: ["hello"], expected: "olleh", isSample: s(true) },
+      { args: ["ab"], expected: "ba", isSample: s(true) },
+      { args: ["x"], expected: "x", isSample: s(false) },
+      { args: ["racecar"], expected: "racecar", isSample: s(false) },
+      { args: [""], expected: "", isSample: s(false) },
+    ],
+  },
+  {
+    slug: "count-vowels",
+    title: "Count Vowels",
+    difficulty: "intro",
+    tags: ["strings", "loops"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Count the lowercase vowels (`a e i o u`) in `s`.",
+    functionName: "countVowels",
+    params: [{ name: "s", type: "string" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function countVowels(s) {\n  let c = 0;\n  for (const ch of s) if ("aeiou".includes(ch)) c++;\n  return c;\n}`,
+    cases: [
+      { args: ["algorithm"], expected: 3, isSample: s(true) },
+      { args: ["xyz"], expected: 0, isSample: s(true) },
+      { args: ["aeiou"], expected: 5, isSample: s(false) },
+      { args: ["queueing"], expected: 5, isSample: s(false) },
+      { args: [""], expected: 0, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "is-palindrome",
+    title: "Palindrome Check",
+    difficulty: "easy",
+    tags: ["strings", "two-pointers"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return `true` if `s` reads the same forwards and backwards. Two pointers, O(n).",
+    functionName: "isPalindrome",
+    params: [{ name: "s", type: "string" }],
+    returnType: "boolean",
+    compare: "exact",
+    referenceSolution: `function isPalindrome(s) {\n  let l = 0, r = s.length - 1;\n  while (l < r) { if (s[l] !== s[r]) return false; l++; r--; }\n  return true;\n}`,
+    cases: [
+      { args: ["racecar"], expected: true, isSample: s(true) },
+      { args: ["hello"], expected: false, isSample: s(true) },
+      { args: ["a"], expected: true, isSample: s(false) },
+      { args: ["abba"], expected: true, isSample: s(false) },
+      { args: ["abca"], expected: false, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "is-anagram",
+    title: "Valid Anagram",
+    difficulty: "easy",
+    tags: ["strings", "hashing", "sorting"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return `true` if `t` is an anagram of `s` (same letters, any order).",
+    functionName: "isAnagram",
+    params: [
+      { name: "s", type: "string" },
+      { name: "t", type: "string" },
+    ],
+    returnType: "boolean",
+    compare: "exact",
+    referenceSolution: `function isAnagram(s, t) {\n  if (s.length !== t.length) return false;\n  const count = {};\n  for (const ch of s) count[ch] = (count[ch] || 0) + 1;\n  for (const ch of t) { if (!count[ch]) return false; count[ch]--; }\n  return true;\n}`,
+    cases: [
+      { args: ["anagram", "nagaram"], expected: true, isSample: s(true) },
+      { args: ["rat", "car"], expected: false, isSample: s(true) },
+      { args: ["a", "a"], expected: true, isSample: s(false) },
+      { args: ["ab", "a"], expected: false, isSample: s(false) },
+      { args: ["listen", "silent"], expected: true, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "first-unique-char",
+    title: "First Unique Character",
+    difficulty: "easy",
+    tags: ["strings", "hashing"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the index of the first non-repeating character in `s`, or `-1` if none.",
+    functionName: "firstUniqChar",
+    params: [{ name: "s", type: "string" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function firstUniqChar(s) {\n  const count = {};\n  for (const ch of s) count[ch] = (count[ch] || 0) + 1;\n  for (let i = 0; i < s.length; i++) if (count[s[i]] === 1) return i;\n  return -1;\n}`,
+    cases: [
+      { args: ["leetcode"], expected: 0, isSample: s(true) },
+      { args: ["aabb"], expected: -1, isSample: s(true) },
+      { args: ["loveleetcode"], expected: 2, isSample: s(false) },
+      { args: ["z"], expected: 0, isSample: s(false) },
+      { args: ["aabbc"], expected: 4, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "longest-common-prefix",
+    title: "Longest Common Prefix",
+    difficulty: "easy",
+    tags: ["strings"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the longest common prefix among all strings in `strs`, or `\"\"` if none.",
+    functionName: "longestCommonPrefix",
+    params: [{ name: "strs", type: "string[]" }],
+    returnType: "string",
+    compare: "exact",
+    referenceSolution: `function longestCommonPrefix(strs) {\n  if (strs.length === 0) return "";\n  let prefix = strs[0];\n  for (const str of strs) {\n    while (str.indexOf(prefix) !== 0) prefix = prefix.slice(0, -1);\n    if (prefix === "") return "";\n  }\n  return prefix;\n}`,
+    cases: [
+      { args: [["flower", "flow", "flight"]], expected: "fl", isSample: s(true) },
+      { args: [["dog", "racecar", "car"]], expected: "", isSample: s(true) },
+      { args: [["abc"]], expected: "abc", isSample: s(false) },
+      { args: [["same", "same", "same"]], expected: "same", isSample: s(false) },
+      { args: [["a", "ab"]], expected: "a", isSample: s(false) },
+    ],
+  },
+  {
+    slug: "valid-parentheses",
+    title: "Valid Parentheses",
+    difficulty: "medium",
+    tags: ["strings", "stack"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Given `s` of `()[]{}`, return `true` if every bracket is closed by the same type in the right order. A stack does it in O(n).",
+    functionName: "validParentheses",
+    params: [{ name: "s", type: "string" }],
+    returnType: "boolean",
+    compare: "exact",
+    referenceSolution: `function validParentheses(s) {\n  const pairs = { ")": "(", "]": "[", "}": "{" };\n  const stack = [];\n  for (const ch of s) {\n    if (ch === "(" || ch === "[" || ch === "{") stack.push(ch);\n    else if (stack.pop() !== pairs[ch]) return false;\n  }\n  return stack.length === 0;\n}`,
+    cases: [
+      { args: ["()[]{}"], expected: true, isSample: s(true) },
+      { args: ["(]"], expected: false, isSample: s(true) },
+      { args: ["([])"], expected: true, isSample: s(false) },
+      { args: ["(("], expected: false, isSample: s(false) },
+      { args: ["]"], expected: false, isSample: s(false) },
+      { args: [""], expected: true, isSample: s(false) },
+    ],
+  },
+
+  // ============================= SEARCHING =============================
+  {
+    slug: "find-index",
+    title: "Linear Search",
+    difficulty: "easy",
+    tags: ["arrays", "searching"],
+    lessonSlug: "big-o-notation",
+    timeLimitMs: 2000,
+    statementMd: "Return the index of the first occurrence of `target` in `nums`, or `-1`.",
+    functionName: "linearSearch",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function linearSearch(nums, target) {\n  for (let i = 0; i < nums.length; i++) if (nums[i] === target) return i;\n  return -1;\n}`,
+    cases: [
+      { args: [[4, 8, 15, 16, 23, 42], 16], expected: 3, isSample: s(true) },
+      { args: [[1, 2, 3], 9], expected: -1, isSample: s(true) },
+      { args: [[7, 7, 7], 7], expected: 0, isSample: s(false) },
+      { args: [[5], 5], expected: 0, isSample: s(false) },
+      { args: [[-3, 0, 12], 12], expected: 2, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "binary-search-position",
+    title: "Binary Search",
+    difficulty: "easy",
+    tags: ["searching", "binary-search"],
+    lessonSlug: "binary-search",
+    timeLimitMs: 2000,
+    statementMd: "`nums` is sorted ascending with distinct values. Return the index of `target`, or `-1` — in O(log n).",
+    functionName: "binarySearch",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function binarySearch(nums, target) {\n  let lo = 0, hi = nums.length - 1;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (nums[mid] === target) return mid;\n    if (nums[mid] < target) lo = mid + 1; else hi = mid - 1;\n  }\n  return -1;\n}`,
+    cases: [
+      { args: [[4, 8, 15, 16, 23, 42, 56, 71], 23], expected: 4, isSample: s(true) },
+      { args: [[1, 3, 5, 7], 4], expected: -1, isSample: s(true) },
+      { args: [[10], 10], expected: 0, isSample: s(false) },
+      { args: [[1, 2, 3, 4, 5, 6, 7, 8, 9], 9], expected: 8, isSample: s(false) },
+      { args: [[-50, -10, 0, 30], -10], expected: 1, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "search-insert",
+    title: "Search Insert Position",
+    difficulty: "easy",
+    tags: ["searching", "binary-search"],
+    lessonSlug: "binary-search",
+    timeLimitMs: 2000,
+    statementMd: "`nums` is sorted distinct. Return the index of `target`, or the index where it would be inserted to keep order. O(log n).",
+    functionName: "searchInsert",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function searchInsert(nums, target) {\n  let lo = 0, hi = nums.length;\n  while (lo < hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (nums[mid] < target) lo = mid + 1; else hi = mid;\n  }\n  return lo;\n}`,
+    cases: [
+      { args: [[1, 3, 5, 6], 5], expected: 2, isSample: s(true) },
+      { args: [[1, 3, 5, 6], 2], expected: 1, isSample: s(true) },
+      { args: [[1, 3, 5, 6], 7], expected: 4, isSample: s(false) },
+      { args: [[1, 3, 5, 6], 0], expected: 0, isSample: s(false) },
+      { args: [[1], 1], expected: 0, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "my-sqrt",
+    title: "Integer Square Root",
+    difficulty: "easy",
+    tags: ["math", "binary-search"],
+    lessonSlug: "binary-search",
+    timeLimitMs: 2000,
+    statementMd: "Return `floor(sqrt(x))` for `x ≥ 0`, using integer binary search (no `Math.sqrt`).",
+    functionName: "mySqrt",
+    params: [{ name: "x", type: "int" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function mySqrt(x) {\n  if (x < 2) return x;\n  let lo = 1, hi = x, ans = 1;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (mid * mid <= x) { ans = mid; lo = mid + 1; } else hi = mid - 1;\n  }\n  return ans;\n}`,
+    cases: [
+      { args: [4], expected: 2, isSample: s(true) },
+      { args: [8], expected: 2, isSample: s(true) },
+      { args: [0], expected: 0, isSample: s(false) },
+      { args: [1], expected: 1, isSample: s(false) },
+      { args: [2147395600], expected: 46340, isSample: s(false) },
+    ],
+  },
+
+  // ============================= HASHING =============================
+  {
+    slug: "two-sum-indices",
+    title: "Two Sum",
+    difficulty: "easy",
+    tags: ["arrays", "hashing"],
+    lessonSlug: "big-o-notation",
+    timeLimitMs: 2000,
+    statementMd: "Return indices `[i, j]` (i < j) of the two numbers that add to `target`. Exactly one solution. A Map gives O(n).",
+    functionName: "twoSum",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function twoSum(nums, target) {\n  const seen = new Map();\n  for (let j = 0; j < nums.length; j++) {\n    const need = target - nums[j];\n    if (seen.has(need)) return [seen.get(need), j];\n    seen.set(nums[j], j);\n  }\n  return [];\n}`,
+    cases: [
+      { args: [[2, 7, 11, 15], 9], expected: [0, 1], isSample: s(true) },
+      { args: [[3, 2, 4], 6], expected: [1, 2], isSample: s(true) },
+      { args: [[3, 3], 6], expected: [0, 1], isSample: s(false) },
+      { args: [[5, -2, 9, 1], -1], expected: [1, 3], isSample: s(false) },
+      { args: [[1, 2, 3, 4, 5, 6], 11], expected: [4, 5], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "first-duplicate",
+    title: "First Duplicate",
+    difficulty: "easy",
+    tags: ["arrays", "hashing"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the first value that appears a second time scanning left→right, or `-1` if all distinct.",
+    functionName: "firstDuplicate",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function firstDuplicate(nums) {\n  const seen = new Set();\n  for (const v of nums) { if (seen.has(v)) return v; seen.add(v); }\n  return -1;\n}`,
+    cases: [
+      { args: [[2, 1, 3, 5, 3, 2]], expected: 3, isSample: s(true) },
+      { args: [[1, 2, 3, 4]], expected: -1, isSample: s(true) },
+      { args: [[9, 9]], expected: 9, isSample: s(false) },
+      { args: [[5, 4, 5, 4]], expected: 5, isSample: s(false) },
+      { args: [[1]], expected: -1, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "count-pairs-with-sum",
+    title: "Count Pairs With Sum",
+    difficulty: "medium",
+    tags: ["arrays", "hashing"],
+    lessonSlug: "big-o-notation",
+    timeLimitMs: 2000,
+    statementMd: "Count pairs `(i, j)` with `i < j` and `nums[i] + nums[j] === target`. The O(n²) double loop and an O(n) frequency map both pass.",
+    functionName: "countPairs",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function countPairs(nums, target) {\n  let c = 0;\n  const count = new Map();\n  for (const v of nums) {\n    c += count.get(target - v) || 0;\n    count.set(v, (count.get(v) || 0) + 1);\n  }\n  return c;\n}`,
+    cases: [
+      { args: [[1, 5, 7, -1, 5], 6], expected: 3, isSample: s(true) },
+      { args: [[1, 1, 1, 1], 2], expected: 6, isSample: s(true) },
+      { args: [[2, 4], 7], expected: 0, isSample: s(false) },
+      { args: [[0, 0, 0], 0], expected: 3, isSample: s(false) },
+      { args: [[3, -3, 4, -4, 7], 0], expected: 2, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "array-intersection",
+    title: "Intersection of Two Arrays",
+    difficulty: "easy",
+    tags: ["arrays", "hashing"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the **distinct** values present in both `a` and `b`, in any order.",
+    functionName: "intersection",
+    params: [
+      { name: "a", type: "int[]" },
+      { name: "b", type: "int[]" },
+    ],
+    returnType: "int[]",
+    compare: "unordered",
+    referenceSolution: `function intersection(a, b) {\n  const setB = new Set(b);\n  const out = new Set();\n  for (const v of a) if (setB.has(v)) out.add(v);\n  return [...out];\n}`,
+    cases: [
+      { args: [[1, 2, 2, 1], [2, 2]], expected: [2], isSample: s(true) },
+      { args: [[4, 9, 5], [9, 4, 9, 8, 4]], expected: [4, 9], isSample: s(true) },
+      { args: [[1, 2, 3], [4, 5]], expected: [], isSample: s(false) },
+      { args: [[1], [1]], expected: [1], isSample: s(false) },
+      { args: [[3, 1, 2], [2, 3, 1]], expected: [1, 2, 3], isSample: s(false) },
+    ],
+  },
+
+  // ============================= SORTING =============================
+  {
+    slug: "merge-two-sorted",
+    title: "Merge Two Sorted Lists",
+    difficulty: "easy",
+    tags: ["arrays", "sorting", "two-pointers"],
+    lessonSlug: "binary-search",
+    timeLimitMs: 2000,
+    statementMd: "Merge two sorted arrays into one sorted array — the merge step of merge sort, O(n+m) with two pointers.",
+    functionName: "mergeSorted",
+    params: [
+      { name: "a", type: "int[]" },
+      { name: "b", type: "int[]" },
+    ],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function mergeSorted(a, b) {\n  const out = [];\n  let i = 0, j = 0;\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}`,
+    cases: [
+      { args: [[1, 3, 5], [2, 4, 6]], expected: [1, 2, 3, 4, 5, 6], isSample: s(true) },
+      { args: [[1, 2], [3, 4]], expected: [1, 2, 3, 4], isSample: s(true) },
+      { args: [[5], [1, 9]], expected: [1, 5, 9], isSample: s(false) },
+      { args: [[], [2]], expected: [2], isSample: s(false) },
+      { args: [[-3, 0, 3], [-2, 2]], expected: [-3, -2, 0, 2, 3], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "sort-colors",
+    title: "Sort Colors",
+    difficulty: "medium",
+    tags: ["arrays", "sorting", "two-pointers"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "`nums` contains only `0`, `1`, `2`. Sort it in a single pass (Dutch national flag). Return the result.",
+    functionName: "sortColors",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function sortColors(nums) {\n  const a = nums.slice();\n  let lo = 0, mid = 0, hi = a.length - 1;\n  while (mid <= hi) {\n    if (a[mid] === 0) { [a[lo], a[mid]] = [a[mid], a[lo]]; lo++; mid++; }\n    else if (a[mid] === 2) { [a[hi], a[mid]] = [a[mid], a[hi]]; hi--; }\n    else mid++;\n  }\n  return a;\n}`,
+    cases: [
+      { args: [[2, 0, 2, 1, 1, 0]], expected: [0, 0, 1, 1, 2, 2], isSample: s(true) },
+      { args: [[2, 0, 1]], expected: [0, 1, 2], isSample: s(true) },
+      { args: [[0]], expected: [0], isSample: s(false) },
+      { args: [[1, 1, 1]], expected: [1, 1, 1], isSample: s(false) },
+      { args: [[2, 2, 0, 0]], expected: [0, 0, 2, 2], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "kth-largest",
+    title: "Kth Largest Element",
+    difficulty: "medium",
+    tags: ["arrays", "sorting"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the `k`th largest element in `nums` (1-indexed: `k = 1` is the maximum).",
+    functionName: "findKthLargest",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "k", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function findKthLargest(nums, k) {\n  const sorted = nums.slice().sort((a, b) => b - a);\n  return sorted[k - 1];\n}`,
+    cases: [
+      { args: [[3, 2, 1, 5, 6, 4], 2], expected: 5, isSample: s(true) },
+      { args: [[3, 2, 3, 1, 2, 4, 5, 5, 6], 4], expected: 4, isSample: s(true) },
+      { args: [[1], 1], expected: 1, isSample: s(false) },
+      { args: [[7, 7, 7], 2], expected: 7, isSample: s(false) },
+      { args: [[2, 1], 2], expected: 1, isSample: s(false) },
+    ],
+  },
+
+  // ============================= MATH =============================
+  {
+    slug: "fizzbuzz-range",
+    title: "FizzBuzz",
+    difficulty: "intro",
+    tags: ["math", "loops"],
+    lessonSlug: "big-o-notation",
+    timeLimitMs: 2000,
+    statementMd: "Return an array for `1..n`: `\"Fizz\"` if divisible by 3, `\"Buzz\"` by 5, `\"FizzBuzz\"` by both, else the number as a string.",
+    functionName: "fizzbuzz",
+    params: [{ name: "n", type: "int" }],
+    returnType: "string[]",
+    compare: "exact",
+    referenceSolution: `function fizzbuzz(n) {\n  const out = [];\n  for (let i = 1; i <= n; i++) {\n    if (i % 15 === 0) out.push("FizzBuzz");\n    else if (i % 3 === 0) out.push("Fizz");\n    else if (i % 5 === 0) out.push("Buzz");\n    else out.push(String(i));\n  }\n  return out;\n}`,
+    cases: [
+      { args: [5], expected: ["1", "2", "Fizz", "4", "Buzz"], isSample: s(true) },
+      { args: [3], expected: ["1", "2", "Fizz"], isSample: s(true) },
+      { args: [1], expected: ["1"], isSample: s(false) },
+      {
+        args: [15],
+        expected: ["1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz", "11", "Fizz", "13", "14", "FizzBuzz"],
+        isSample: s(false),
+      },
+    ],
+  },
+  {
+    slug: "missing-number",
+    title: "Missing Number",
+    difficulty: "easy",
+    tags: ["arrays", "math"],
+    lessonSlug: "binary-search",
+    timeLimitMs: 2000,
+    statementMd: "`nums` contains `n` distinct values from `0..n` with exactly one missing. Return it. O(n) via the sum formula.",
+    functionName: "missingNumber",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function missingNumber(nums) {\n  const n = nums.length;\n  let sum = 0;\n  for (const v of nums) sum += v;\n  return (n * (n + 1)) / 2 - sum;\n}`,
+    cases: [
+      { args: [[3, 0, 1]], expected: 2, isSample: s(true) },
+      { args: [[0, 1]], expected: 2, isSample: s(true) },
+      { args: [[1]], expected: 0, isSample: s(false) },
+      { args: [[9, 6, 4, 2, 3, 5, 7, 0, 1]], expected: 8, isSample: s(false) },
+      { args: [[0]], expected: 1, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "power-of-two",
+    title: "Power of Two",
+    difficulty: "intro",
+    tags: ["math", "bit-manipulation"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return `true` if `n` is a power of two. Hint: `n > 0 && (n & (n - 1)) === 0`.",
+    functionName: "isPowerOfTwo",
+    params: [{ name: "n", type: "int" }],
+    returnType: "boolean",
+    compare: "exact",
+    referenceSolution: `function isPowerOfTwo(n) {\n  return n > 0 && (n & (n - 1)) === 0;\n}`,
+    cases: [
+      { args: [1], expected: true, isSample: s(true) },
+      { args: [16], expected: true, isSample: s(true) },
+      { args: [3], expected: false, isSample: s(false) },
+      { args: [0], expected: false, isSample: s(false) },
+      { args: [1024], expected: true, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "count-primes",
+    title: "Count Primes",
+    difficulty: "medium",
+    tags: ["math"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the number of primes strictly less than `n` (Sieve of Eratosthenes).",
+    functionName: "countPrimes",
+    params: [{ name: "n", type: "int" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function countPrimes(n) {\n  if (n < 3) return 0;\n  const sieve = new Uint8Array(n);\n  let count = 0;\n  for (let i = 2; i < n; i++) {\n    if (sieve[i]) continue;\n    count++;\n    for (let j = i * i; j < n; j += i) sieve[j] = 1;\n  }\n  return count;\n}`,
+    cases: [
+      { args: [10], expected: 4, isSample: s(true) },
+      { args: [0], expected: 0, isSample: s(true) },
+      { args: [2], expected: 0, isSample: s(false) },
+      { args: [3], expected: 1, isSample: s(false) },
+      { args: [100], expected: 25, isSample: s(false) },
+    ],
+  },
+
+  // ============================= RECURSION / DP =============================
+  {
+    slug: "factorial",
+    title: "Factorial",
+    difficulty: "intro",
+    tags: ["recursion", "math"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return `n!` = `1 × 2 × … × n` (with `0! = 1`).",
+    functionName: "factorial",
+    params: [{ name: "n", type: "int" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function factorial(n) {\n  let r = 1;\n  for (let i = 2; i <= n; i++) r *= i;\n  return r;\n}`,
+    cases: [
+      { args: [5], expected: 120, isSample: s(true) },
+      { args: [0], expected: 1, isSample: s(true) },
+      { args: [1], expected: 1, isSample: s(false) },
+      { args: [10], expected: 3628800, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "fibonacci",
+    title: "Fibonacci Number",
+    difficulty: "easy",
+    tags: ["recursion", "dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the `n`th Fibonacci number (`fib(0)=0`, `fib(1)=1`). Use O(n) iteration, not naive recursion.",
+    functionName: "fib",
+    params: [{ name: "n", type: "int" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function fib(n) {\n  if (n < 2) return n;\n  let a = 0, b = 1;\n  for (let i = 2; i <= n; i++) { const c = a + b; a = b; b = c; }\n  return b;\n}`,
+    cases: [
+      { args: [2], expected: 1, isSample: s(true) },
+      { args: [10], expected: 55, isSample: s(true) },
+      { args: [0], expected: 0, isSample: s(false) },
+      { args: [1], expected: 1, isSample: s(false) },
+      { args: [30], expected: 832040, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "climbing-stairs",
+    title: "Climbing Stairs",
+    difficulty: "easy",
+    tags: ["dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "You can climb 1 or 2 steps at a time. Return the number of distinct ways to reach step `n`.",
+    functionName: "climbStairs",
+    params: [{ name: "n", type: "int" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function climbStairs(n) {\n  let a = 1, b = 1;\n  for (let i = 2; i <= n; i++) { const c = a + b; a = b; b = c; }\n  return b;\n}`,
+    cases: [
+      { args: [2], expected: 2, isSample: s(true) },
+      { args: [3], expected: 3, isSample: s(true) },
+      { args: [1], expected: 1, isSample: s(false) },
+      { args: [5], expected: 8, isSample: s(false) },
+      { args: [10], expected: 89, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "house-robber",
+    title: "House Robber",
+    difficulty: "medium",
+    tags: ["dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "`nums[i]` is the money in house i. You can't rob two adjacent houses. Return the max you can rob. O(n) DP.",
+    functionName: "rob",
+    params: [{ name: "nums", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function rob(nums) {\n  let prev = 0, curr = 0;\n  for (const v of nums) { const t = Math.max(curr, prev + v); prev = curr; curr = t; }\n  return curr;\n}`,
+    cases: [
+      { args: [[1, 2, 3, 1]], expected: 4, isSample: s(true) },
+      { args: [[2, 7, 9, 3, 1]], expected: 12, isSample: s(true) },
+      { args: [[5]], expected: 5, isSample: s(false) },
+      { args: [[]], expected: 0, isSample: s(false) },
+      { args: [[2, 1, 1, 2]], expected: 4, isSample: s(false) },
+    ],
+  },
+  {
+    slug: "coin-change",
+    title: "Coin Change",
+    difficulty: "medium",
+    tags: ["dynamic-programming"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "Return the fewest coins from `coins` that sum to `amount`, or `-1` if impossible. Unbounded-knapsack DP.",
+    functionName: "coinChange",
+    params: [
+      { name: "coins", type: "int[]" },
+      { name: "amount", type: "int" },
+    ],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function coinChange(coins, amount) {\n  const dp = new Array(amount + 1).fill(Infinity);\n  dp[0] = 0;\n  for (let a = 1; a <= amount; a++) {\n    for (const c of coins) if (c <= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);\n  }\n  return dp[amount] === Infinity ? -1 : dp[amount];\n}`,
+    cases: [
+      { args: [[1, 2, 5], 11], expected: 3, isSample: s(true) },
+      { args: [[2], 3], expected: -1, isSample: s(true) },
+      { args: [[1], 0], expected: 0, isSample: s(false) },
+      { args: [[1, 5, 10, 25], 30], expected: 2, isSample: s(false) },
+      { args: [[2, 5], 8], expected: 4, isSample: s(false) },
+    ],
+  },
+
+  // ============================= TWO POINTERS =============================
+  {
+    slug: "two-sum-sorted",
+    title: "Two Sum II (Sorted)",
+    difficulty: "easy",
+    tags: ["arrays", "two-pointers", "binary-search"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "`nums` is sorted ascending. Return 0-based indices `[i, j]` (i < j) of the two values summing to `target`. Two pointers, O(n).",
+    functionName: "twoSumSorted",
+    params: [
+      { name: "nums", type: "int[]" },
+      { name: "target", type: "int" },
+    ],
+    returnType: "int[]",
+    compare: "exact",
+    referenceSolution: `function twoSumSorted(nums, target) {\n  let l = 0, r = nums.length - 1;\n  while (l < r) {\n    const sum = nums[l] + nums[r];\n    if (sum === target) return [l, r];\n    if (sum < target) l++; else r--;\n  }\n  return [];\n}`,
+    cases: [
+      { args: [[2, 7, 11, 15], 9], expected: [0, 1], isSample: s(true) },
+      { args: [[2, 3, 4], 6], expected: [0, 2], isSample: s(true) },
+      { args: [[-1, 0], -1], expected: [0, 1], isSample: s(false) },
+      { args: [[1, 2, 3, 4, 4, 9, 56, 90], 8], expected: [3, 4], isSample: s(false) },
+      { args: [[5, 25, 75], 100], expected: [1, 2], isSample: s(false) },
+    ],
+  },
+  {
+    slug: "container-water",
+    title: "Container With Most Water",
+    difficulty: "medium",
+    tags: ["arrays", "two-pointers"],
+    lessonSlug: null,
+    timeLimitMs: 2000,
+    statementMd: "`height[i]` is a vertical line. Return the most water two lines can hold: `min(h[i], h[j]) × (j - i)`. Two pointers, O(n).",
+    functionName: "maxArea",
+    params: [{ name: "height", type: "int[]" }],
+    returnType: "int",
+    compare: "exact",
+    referenceSolution: `function maxArea(height) {\n  let l = 0, r = height.length - 1, best = 0;\n  while (l < r) {\n    const area = Math.min(height[l], height[r]) * (r - l);\n    if (area > best) best = area;\n    if (height[l] < height[r]) l++; else r--;\n  }\n  return best;\n}`,
+    cases: [
+      { args: [[1, 8, 6, 2, 5, 4, 8, 3, 7]], expected: 49, isSample: s(true) },
+      { args: [[1, 1]], expected: 1, isSample: s(true) },
+      { args: [[4, 3, 2, 1, 4]], expected: 16, isSample: s(false) },
+      { args: [[1, 2, 1]], expected: 2, isSample: s(false) },
+      { args: [[2, 3, 4, 5, 18, 17, 6]], expected: 17, isSample: s(false) },
     ],
   },
 ];
 
 export function getProblem(slug: string): ProblemDef | undefined {
   return problems.find((p) => p.slug === slug);
+}
+
+/** Generated starter stub for a problem in the requested language. */
+export function starterCode(problem: ProblemDef, language: Language): string {
+  return generateStarter(language, problem.functionName, problem.params, problem.returnType);
+}
+
+/** All languages' starter stubs, keyed by language id. */
+export function allStarters(problem: ProblemDef): Record<Language, string> {
+  const out = {} as Record<Language, string>;
+  for (const lang of ["javascript", "typescript", "python", "cpp", "java"] as Language[]) {
+    out[lang] = starterCode(problem, lang);
+  }
+  return out;
+}
+
+export function problemSignature(problem: ProblemDef): string {
+  return signatureString(problem.functionName, problem.params, problem.returnType);
 }

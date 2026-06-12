@@ -1,69 +1,98 @@
 import { describe, expect, it } from "vitest";
-import { judgeSubmission, normalizeOutput } from "../src/judge";
+import { judgeSubmission, resultsEqual, type JudgeCase } from "../src/judge";
 
-describe("normalizeOutput", () => {
-  it("normalizes line endings, trailing spaces, and outer whitespace", () => {
-    expect(normalizeOutput("a \r\nb  \n")).toBe("a\nb");
-    expect(normalizeOutput("\n\n42\n")).toBe("42");
-    expect(normalizeOutput("x")).toBe("x");
+const sumArray = `function sumArray(nums){ let t=0; for(const v of nums) t+=v; return t; }`;
+const cases = (...cs: JudgeCase[]) => cs;
+
+describe("resultsEqual", () => {
+  it("exact = deep equal", () => {
+    expect(resultsEqual([1, 2], [1, 2], "exact")).toBe(true);
+    expect(resultsEqual([1, 2], [2, 1], "exact")).toBe(false);
+    expect(resultsEqual("ab", "ab", "exact")).toBe(true);
+  });
+  it("unordered = multiset over a top-level array", () => {
+    expect(resultsEqual([2, 1, 3], [1, 2, 3], "unordered")).toBe(true);
+    expect(resultsEqual([1, 1, 2], [1, 2, 2], "unordered")).toBe(false);
   });
 });
 
-describe("verdict mapping", () => {
-  it("correct solution → accepted with all cases passed", { timeout: 30_000 }, async () => {
+describe("function-harness verdicts", () => {
+  it("accepted when the function returns the expected value for every case", { timeout: 20000 }, async () => {
     const r = await judgeSubmission({
-      sourceCode: `const nums = input.trim().split(/\\s+/).map(Number);
-        console.log(nums.reduce((a, b) => a + b, 0));`,
-      cases: [
-        { input: "1 2 3", expected: "6" },
-        { input: "10 -4", expected: "6" },
-      ],
+      language: "javascript",
+      sourceCode: sumArray,
+      functionName: "sumArray",
+      compare: "exact",
+      cases: cases({ args: [[1, 2, 3]], expected: 6 }, { args: [[10, -4]], expected: 6 }),
     });
     expect(r.verdict).toBe("accepted");
     expect(r.passedCount).toBe(2);
-    expect(r.cases.every((c) => c.status === "accepted")).toBe(true);
+    expect(r.cases[0]!.stdoutExcerpt).toBe("6"); // returned value shown for samples
   });
 
-  it("wrong output → wrong_answer with per-case detail", { timeout: 30_000 }, async () => {
+  it("wrong_answer with the returned value captured", { timeout: 20000 }, async () => {
     const r = await judgeSubmission({
-      sourceCode: `console.log(999);`,
-      cases: [
-        { input: "1 2 3", expected: "6" },
-        { input: "", expected: "999" },
-      ],
+      language: "javascript",
+      sourceCode: `function f(a){ return 0; }`,
+      functionName: "f",
+      cases: cases({ args: [[1]], expected: 1 }, { args: [[2]], expected: 2 }),
     });
     expect(r.verdict).toBe("wrong_answer");
     expect(r.cases[0]!.status).toBe("wrong_answer");
-    expect(r.cases[1]!.status).toBe("accepted");
-    expect(r.passedCount).toBe(1);
+    expect(r.cases[0]!.stdoutExcerpt).toBe("0");
   });
 
-  it("runtime exception → runtime_error with the message excerpted", { timeout: 30_000 }, async () => {
+  it("runtime_error on throw", { timeout: 20000 }, async () => {
     const r = await judgeSubmission({
-      sourceCode: `throw new Error("boom");`,
-      cases: [{ input: "", expected: "1" }],
+      language: "javascript",
+      sourceCode: `function f(){ throw new Error("boom"); }`,
+      functionName: "f",
+      cases: cases({ args: [], expected: 1 }),
     });
     expect(r.verdict).toBe("runtime_error");
     expect(r.cases[0]!.stderrExcerpt).toContain("boom");
   });
 
-  it("trailing-whitespace differences still pass (normalized compare)", { timeout: 30_000 }, async () => {
+  it("runtime_error when the function is missing / misnamed", { timeout: 20000 }, async () => {
     const r = await judgeSubmission({
-      sourceCode: `console.log("6  ");`,
-      cases: [{ input: "", expected: "6" }],
+      language: "javascript",
+      sourceCode: `function wrongName(){ return 1; }`,
+      functionName: "twoSum",
+      cases: cases({ args: [[], 0], expected: [] }),
+    });
+    expect(r.verdict).toBe("runtime_error");
+    expect(r.cases[0]!.stderrExcerpt).toMatch(/not defined/);
+  });
+
+  it("compile_error on a syntax error (one row, no per-case run)", { timeout: 20000 }, async () => {
+    const r = await judgeSubmission({
+      language: "javascript",
+      sourceCode: `function f({ ]`,
+      functionName: "f",
+      cases: cases({ args: [], expected: 1 }, { args: [], expected: 2 }),
+    });
+    expect(r.verdict).toBe("compile_error");
+    expect(r.cases.length).toBe(1);
+  });
+
+  it("judges TypeScript by transpiling type annotations away", { timeout: 20000 }, async () => {
+    const r = await judgeSubmission({
+      language: "typescript",
+      sourceCode: `function add(a: number, b: number): number {\n  const xs: number[] = [a, b];\n  return xs.reduce((p, c) => p + c, 0);\n}`,
+      functionName: "add",
+      cases: cases({ args: [2, 3], expected: 5 }, { args: [-1, 1], expected: 0 }),
     });
     expect(r.verdict).toBe("accepted");
   });
 
-  it("compile error stops after the first case", { timeout: 30_000 }, async () => {
+  it("honours the unordered compare mode", { timeout: 20000 }, async () => {
     const r = await judgeSubmission({
-      sourceCode: `const = broken;`,
-      cases: [
-        { input: "a", expected: "1" },
-        { input: "b", expected: "2" },
-      ],
+      language: "javascript",
+      sourceCode: `function f(a){ return a.slice().reverse(); }`,
+      functionName: "f",
+      compare: "unordered",
+      cases: cases({ args: [[1, 2, 3]], expected: [3, 2, 1] }, { args: [[1, 2, 3]], expected: [2, 1, 3] }),
     });
-    expect(r.verdict).toBe("compile_error");
-    expect(r.cases.length).toBe(1); // early exit — identical for every case
+    expect(r.verdict).toBe("accepted");
   });
 });

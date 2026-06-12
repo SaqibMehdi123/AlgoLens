@@ -1,18 +1,24 @@
 /**
- * JS judge v1 (TRD §6 MVP): every test case runs in a fresh CHILD PROCESS with
- *  - Node's permission model (`--permission`): fs / child_process / worker_threads denied,
- *  - `--max-old-space-size=128`: heap capped (OOM → memory_limit),
- *  - a bare `vm` context inside the child: no require, no process, no fetch — only `input`
- *    and a console shim defined INSIDE the context (no host functions cross the boundary,
- *    so constructor-chain escapes only ever reach the already-restricted child),
- *  - vm script timeout (sync loops) + parent SIGKILL watchdog (anything else),
- *  - output capped in the shim (1MB) and the parent (2MB buffer).
+ * JS/TS judge v1 — LeetCode-style "implement this function" (TRD §6 MVP).
  *
- * Defense in depth, not perfection: the production boundary is Judge0 CE on an isolated VM
- * (TRD §7 — staged for a later phase). This judge is the same call signature that the BullMQ
- * consumer will keep when Judge0 replaces the inner runner.
+ * The user submits a function definition; the judge calls it with each test case's structured
+ * `args` and compares the RETURN VALUE. Isolation (unchanged from the stdin/stdout version):
+ *  - fresh CHILD PROCESS per submission, Node `--permission` (fs/net/child_process denied),
+ *    `--max-old-space-size=128`, clean `env: {}`,
+ *  - a bare `vm` context — no `require`, `process`, `fetch`, `setTimeout`; only ECMAScript
+ *    intrinsics + a no-op `console`,
+ *  - **args cross the boundary as a JSON string** and are re-parsed by the sandbox's own
+ *    `JSON.parse`, so no host object (and thus no host realm `Function`) is ever exposed to user
+ *    code — the classic vm-escape vector is closed,
+ *  - per-call `vm` timeout (sync loops) + a parent SIGKILL watchdog (everything else).
+ *
+ * TypeScript is transpiled to JS here (host side) before it reaches the sandbox. C++/Java/Python
+ * are NOT run here — they require the Judge0 host (TRD §7); the API routes reject them honestly.
+ *
+ * Production swaps the inner runner for Judge0 CE; this call signature stays.
  */
 import { spawn } from "node:child_process";
+import ts from "typescript";
 
 export type CaseStatus =
   | "accepted"
@@ -23,21 +29,29 @@ export type CaseStatus =
   | "compile_error"
   | "judge_error";
 
+export type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
+export type CompareMode = "exact" | "unordered";
+export type JudgeLanguage = "javascript" | "typescript";
+
 export interface JudgeCase {
-  input: string;
-  expected: string;
+  args: Json[];
+  expected: Json;
 }
 
 export interface CaseResult {
   status: CaseStatus;
   runtimeMs: number;
+  /** The function's returned value (JSON) — shown for sample cases, redacted for hidden ones. */
   stdoutExcerpt: string | null;
   stderrExcerpt: string | null;
 }
 
 export interface JudgeRequest {
+  language: JudgeLanguage;
   sourceCode: string;
+  functionName: string;
   cases: JudgeCase[];
+  compare?: CompareMode;
   timeLimitMs?: number;
 }
 
@@ -50,14 +64,14 @@ export interface JudgeResult {
 }
 
 const SENTINEL = "@@ALGOLENS_RESULT@@";
+const NOFN = "@@NO_FUNCTION@@";
 const EXCERPT_LIMIT = 1024;
-const PARENT_STDOUT_CAP = 2 * 1024 * 1024;
+const RESULT_CAP = 2 * 1024 * 1024;
 
 /**
- * The child harness, embedded as a string and run via `node -e` so no file path resolution is
- * needed wherever the judge is bundled. Reads {source,input,timeoutMs} JSON on stdin; writes a
- * SENTINEL-prefixed result JSON on stdout. The console shim and output buffer live INSIDE the
- * vm context — only primitive strings are extracted back out.
+ * Child harness (run via `node -e`). Reads {source, functionName, argsList, timeoutMs, resultCap}
+ * on stdin; defines the user source in a bare vm context; calls the function per case with args
+ * re-parsed inside the sandbox; writes a SENTINEL-prefixed JSON result.
  */
 const RUNNER_SOURCE = `
 const vm = require("node:vm");
@@ -65,185 +79,234 @@ let raw = "";
 process.stdin.setEncoding("utf8");
 process.stdin.on("data", (c) => { raw += c; });
 process.stdin.on("end", () => {
-  const { source, input, timeoutMs } = JSON.parse(raw);
-  const finish = (obj) => { process.stdout.write("\\n${SENTINEL}" + JSON.stringify(obj)); process.exit(0); };
+  const { source, functionName, argsList, timeoutMs, resultCap } = JSON.parse(raw);
+  const finish = (o) => { process.stdout.write("\\n${SENTINEL}" + JSON.stringify(o)); process.exit(0); };
   const ctx = vm.createContext(Object.create(null));
+  // No-op console so debug prints don't crash; nothing escapes the sandbox.
   try {
-    vm.runInContext(
-      "'use strict';" +
-      "var __out = [];" +
-      "var __chars = 0;" +
-      "var __truncated = false;" +
-      "var console = { log: function () {" +
-      "  if (__truncated) { throw new Error('OUTPUT_LIMIT'); }" +
-      "  var parts = [];" +
-      "  for (var i = 0; i < arguments.length; i++) { parts.push(String(arguments[i])); }" +
-      "  var line = parts.join(' ');" +
-      "  __chars += line.length;" +
-      "  if (__chars > 1000000) { __truncated = true; throw new Error('OUTPUT_LIMIT'); }" +
-      "  __out.push(line);" +
-      "}, error: function () {}, warn: function () {} };",
-      ctx,
-    );
-    ctx.input = String(input);
-  } catch (e) {
-    finish({ status: "judge_error", stdout: "", error: String(e && e.message) });
-    return;
-  }
+    vm.runInContext("var console={log:function(){},error:function(){},warn:function(){},info:function(){}};", ctx);
+  } catch (e) { finish({ compileError: "context init failed" }); return; }
 
   let script;
-  try {
-    script = new vm.Script(String(source), { filename: "submission.js" });
-  } catch (e) {
-    finish({ status: "compile_error", stdout: "", error: String(e && e.message) });
-    return;
-  }
+  try { script = new vm.Script(String(source), { filename: "solution.js" }); }
+  catch (e) { finish({ compileError: String((e && e.message) || e) }); return; }
 
-  let status = "ok";
-  let error = null;
-  try {
-    script.runInContext(ctx, { timeout: timeoutMs, displayErrors: true });
-  } catch (e) {
-    const msg = String((e && e.message) || e);
-    if ((e && e.code === "ERR_SCRIPT_EXECUTION_TIMED_OUT") || msg.includes("Script execution timed out")) status = "time_limit";
-    else if (msg.includes("OUTPUT_LIMIT")) { status = "runtime_error"; error = "output limit exceeded (1MB)"; }
-    else { status = "runtime_error"; error = msg.slice(0, 500); }
-  }
+  try { script.runInContext(ctx, { timeout: timeoutMs }); }
+  catch (e) { finish({ defError: String((e && e.message) || e) }); return; }
 
-  let stdout = "";
-  try { stdout = vm.runInContext("__out.join('\\\\n')", ctx); } catch (e) { /* keep empty */ }
-  finish({ status, stdout: String(stdout).slice(0, 1000000), error });
+  const results = [];
+  for (const args of argsList) {
+    // Primitive string crosses the boundary; sandbox JSON.parse rebuilds the args with sandbox
+    // prototypes — user code never receives a host object.
+    ctx.__argsJson = JSON.stringify(args);
+    const t0 = Date.now();
+    try {
+      const expr = "(typeof " + functionName + " === 'function')"
+        + " ? JSON.stringify(" + functionName + "(...JSON.parse(__argsJson)))"
+        + " : '" + ${JSON.stringify(NOFN)} + "'";
+      const r = vm.runInContext(expr, ctx, { timeout: timeoutMs });
+      const ms = Date.now() - t0;
+      if (r === ${JSON.stringify(NOFN)}) results.push({ status: "runtime_error", ms, error: functionName + " is not defined (check the function name/signature)" });
+      else if (typeof r !== "string") results.push({ status: "runtime_error", ms, error: "function returned a non-serializable value" });
+      else if (r.length > resultCap) results.push({ status: "runtime_error", ms, error: "returned value too large" });
+      else results.push({ status: "ok", ms, result: r });
+    } catch (e) {
+      const ms = Date.now() - t0;
+      const msg = String((e && e.message) || e);
+      if ((e && e.code === "ERR_SCRIPT_EXECUTION_TIMED_OUT") || msg.indexOf("Script execution timed out") >= 0)
+        results.push({ status: "time_limit", ms });
+      else results.push({ status: "runtime_error", ms, error: msg.slice(0, 500) });
+    }
+  }
+  finish({ results });
 });
 `;
 
+interface RunnerCase {
+  status: "ok" | "time_limit" | "runtime_error";
+  ms: number;
+  result?: string;
+  error?: string;
+}
 interface RunnerReply {
-  status: "ok" | "time_limit" | "runtime_error" | "compile_error" | "judge_error";
-  stdout: string;
-  error: string | null;
+  compileError?: string;
+  defError?: string;
+  results?: RunnerCase[];
 }
 
-function runCase(
-  sourceCode: string,
-  input: string,
+function transpile(source: string, language: JudgeLanguage): { code: string; error?: string } {
+  if (language === "javascript") return { code: source };
+  try {
+    const out = ts.transpileModule(source, {
+      compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.None },
+      reportDiagnostics: false,
+    });
+    return { code: out.outputText };
+  } catch (e) {
+    return { code: "", error: (e as Error).message };
+  }
+}
+
+function runAll(
+  source: string,
+  functionName: string,
+  argsList: Json[][],
   timeLimitMs: number,
-): Promise<{ reply: RunnerReply | null; killed: boolean; stderr: string; ms: number }> {
+): Promise<{ reply: RunnerReply | null; killed: boolean; stderr: string }> {
   return new Promise((resolve) => {
     const child = spawn(
       process.execPath,
       ["--permission", "--max-old-space-size=128", "-e", RUNNER_SOURCE],
-      {
-        // Deliberately empty: parent secrets never reach submissions. (Cast needed because
-        // Next.js augments ProcessEnv with a required NODE_ENV when web typechecks this file.)
-        env: {} as NodeJS.ProcessEnv,
-        stdio: ["pipe", "pipe", "pipe"],
-        windowsHide: true,
-      },
+      { env: {} as NodeJS.ProcessEnv, stdio: ["pipe", "pipe", "pipe"], windowsHide: true },
     );
-
     let stdout = "";
     let stderr = "";
     let killed = false;
-    const start = Date.now();
-
-    // Watchdog: vm timeout handles sync loops; this catches everything else (async, runaway IO).
-    const watchdog = setTimeout(() => {
-      killed = true;
-      child.kill("SIGKILL");
-    }, timeLimitMs * 3 + 1500);
-
-    child.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
-      if (stdout.length > PARENT_STDOUT_CAP) {
+    const watchdog = setTimeout(
+      () => {
+        killed = true;
+        child.kill("SIGKILL");
+      },
+      argsList.length * timeLimitMs * 2 + 3000,
+    );
+    child.stdout.on("data", (c: Buffer) => {
+      stdout += c.toString("utf8");
+      if (stdout.length > RESULT_CAP * 2) {
         killed = true;
         child.kill("SIGKILL");
       }
     });
-    child.stderr.on("data", (chunk: Buffer) => {
-      if (stderr.length < 8192) stderr += chunk.toString("utf8");
+    child.stderr.on("data", (c: Buffer) => {
+      if (stderr.length < 8192) stderr += c.toString("utf8");
     });
     child.on("error", () => {
       clearTimeout(watchdog);
-      resolve({ reply: null, killed, stderr, ms: Date.now() - start });
+      resolve({ reply: null, killed, stderr });
     });
     child.on("close", () => {
       clearTimeout(watchdog);
-      const idx = stdout.lastIndexOf(SENTINEL);
+      const i = stdout.lastIndexOf(SENTINEL);
       let reply: RunnerReply | null = null;
-      if (idx >= 0) {
+      if (i >= 0) {
         try {
-          reply = JSON.parse(stdout.slice(idx + SENTINEL.length)) as RunnerReply;
+          reply = JSON.parse(stdout.slice(i + SENTINEL.length)) as RunnerReply;
         } catch {
           reply = null;
         }
       }
-      resolve({ reply, killed, stderr, ms: Date.now() - start });
+      resolve({ reply, killed, stderr });
     });
-
-    child.stdin.write(JSON.stringify({ source: sourceCode, input, timeoutMs: timeLimitMs }));
+    child.stdin.write(
+      JSON.stringify({ source, functionName, argsList, timeoutMs: timeLimitMs, resultCap: RESULT_CAP }),
+    );
     child.stdin.end();
   });
 }
 
-/** Trim trailing whitespace per line, normalize newlines, trim the whole — TRD §6 comparison. */
-export function normalizeOutput(s: string): string {
-  return s
-    .replace(/\r\n/g, "\n")
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .join("\n")
-    .trim();
-}
+const excerpt = (s: string | null | undefined): string | null =>
+  s == null ? null : s.slice(0, EXCERPT_LIMIT);
 
-const excerpt = (s: string | null): string | null =>
-  s === null ? null : s.slice(0, EXCERPT_LIMIT);
+/** Compare a returned value to the expected one. `unordered` treats top-level arrays as multisets. */
+export function resultsEqual(actual: Json, expected: Json, mode: CompareMode): boolean {
+  if (mode === "unordered") {
+    if (!Array.isArray(actual) || !Array.isArray(expected)) return false;
+    const norm = (a: Json[]) => a.map((x) => JSON.stringify(x)).sort();
+    return JSON.stringify(norm(actual)) === JSON.stringify(norm(expected));
+  }
+  return JSON.stringify(actual) === JSON.stringify(expected);
+}
 
 export async function judgeSubmission(req: JudgeRequest): Promise<JudgeResult> {
   const timeLimitMs = req.timeLimitMs ?? 2000;
-  const results: CaseResult[] = [];
-  let verdict: CaseStatus = "accepted";
-  let passedCount = 0;
-  let maxMs = 0;
+  const compare = req.compare ?? "exact";
+  const total = req.cases.length;
 
-  for (const testCase of req.cases) {
-    const { reply, killed, stderr, ms } = await runCase(req.sourceCode, testCase.input, timeLimitMs);
-    maxMs = Math.max(maxMs, ms);
-
-    let status: CaseStatus;
-    let out: string | null = null;
-    if (reply === null) {
-      // Child died without reporting: OOM abort, SIGKILL watchdog, or stdout flood.
-      if (/heap out of memory|allocation failed/i.test(stderr)) status = "memory_limit";
-      else if (killed) status = ms >= timeLimitMs * 2 ? "time_limit" : "runtime_error";
-      else status = "judge_error";
-    } else if (reply.status === "ok") {
-      out = reply.stdout;
-      status = normalizeOutput(out) === normalizeOutput(testCase.expected) ? "accepted" : "wrong_answer";
-    } else {
-      status = reply.status;
-      out = reply.stdout;
-    }
-
-    results.push({
-      status,
-      runtimeMs: ms,
-      stdoutExcerpt: excerpt(out),
-      stderrExcerpt: excerpt(reply?.error ?? (stderr || null)),
-    });
-
-    if (status === "accepted") {
-      passedCount++;
-    } else if (verdict === "accepted") {
-      verdict = status; // first failure decides the submission verdict
-    }
-    // Compile errors are identical for every case — stop early.
-    if (status === "compile_error") break;
+  const { code, error: tsError } = transpile(req.sourceCode, req.language);
+  if (tsError) {
+    return compileErrorResult(total, tsError);
   }
 
+  const { reply, killed, stderr } = await runAll(
+    code,
+    req.functionName,
+    req.cases.map((c) => c.args),
+    timeLimitMs,
+  );
+
+  if (reply?.compileError != null) return compileErrorResult(total, reply.compileError);
+  if (reply?.defError != null) {
+    return uniformResult(total, "runtime_error", `error while defining the function: ${reply.defError}`);
+  }
+  if (!reply?.results) {
+    // Child died without reporting: OOM, watchdog kill, or output flood.
+    const status: CaseStatus = /heap out of memory|allocation failed/i.test(stderr)
+      ? "memory_limit"
+      : killed
+        ? "time_limit"
+        : "judge_error";
+    return uniformResult(total, status, status === "memory_limit" ? "exceeded 128MB" : "execution halted");
+  }
+
+  const cases: CaseResult[] = [];
+  let verdict: CaseStatus = "accepted";
+  let passed = 0;
+  let maxMs = 0;
+
+  req.cases.forEach((testCase, i) => {
+    const rc = reply.results![i];
+    let status: CaseStatus;
+    let out: string | null = null;
+    if (!rc) {
+      status = "judge_error";
+    } else if (rc.status === "ok") {
+      out = rc.result ?? "null";
+      let actual: Json = null;
+      try {
+        actual = JSON.parse(rc.result ?? "null") as Json;
+      } catch {
+        /* keep null */
+      }
+      status = resultsEqual(actual, testCase.expected, compare) ? "accepted" : "wrong_answer";
+    } else {
+      status = rc.status;
+      out = rc.error ?? null;
+    }
+    maxMs = Math.max(maxMs, rc?.ms ?? 0);
+    cases.push({
+      status,
+      runtimeMs: rc?.ms ?? 0,
+      stdoutExcerpt: excerpt(out),
+      stderrExcerpt: status === "runtime_error" ? excerpt(rc?.error) : null,
+    });
+    if (status === "accepted") passed++;
+    else if (verdict === "accepted") verdict = status;
+  });
+
+  return { verdict, passedCount: passed, totalCount: total, runtimeMs: maxMs, cases };
+}
+
+function compileErrorResult(total: number, message: string): JudgeResult {
   return {
-    verdict,
-    passedCount,
-    totalCount: req.cases.length,
-    runtimeMs: maxMs,
-    cases: results,
+    verdict: "compile_error",
+    passedCount: 0,
+    totalCount: total,
+    runtimeMs: 0,
+    // One row — a compile error is identical for every case.
+    cases: [{ status: "compile_error", runtimeMs: 0, stdoutExcerpt: null, stderrExcerpt: excerpt(message) }],
+  };
+}
+
+function uniformResult(total: number, status: CaseStatus, message: string): JudgeResult {
+  return {
+    verdict: status,
+    passedCount: 0,
+    totalCount: total,
+    runtimeMs: 0,
+    cases: Array.from({ length: Math.max(total, 1) }, () => ({
+      status,
+      runtimeMs: 0,
+      stdoutExcerpt: null,
+      stderrExcerpt: excerpt(message),
+    })),
   };
 }
