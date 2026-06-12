@@ -117,12 +117,33 @@ Tracks progress against the implementation roadmap (private planning docs).
 - ⛔️ Deferred: streak-freeze BullMQ cron, cross-device sync (auth+DB), `/s/:slug` short-link share
   pages with stored snapshots (needs DB), email digest (Resend), onboarding goal-picker.
 
-## Next (not built yet)
+### Phase 6 — Production hardening (audit pass complete)
+
+- ✅ **Security:** CSP + full header set (HSTS, nosniff, X-Frame-Options, Referrer/Permissions-Policy)
+  via next.config — **verified live**; sliding-window **rate limiting** (submissions 6/min, analyses
+  10/min) → 429 problem+json + Retry-After (unit-tested + verified live: 6×202 then 429); malicious
+  judge suite re-run green; hidden-case leak tests green.
+- ✅ **Dependency audit + fixes:** 29 vulns (2 critical, 12 high) → **4 (0 critical)** by bumping
+  next→15.5, postcss→8.5.10, drizzle→0.45.2; remaining 4 documented as accepted-risk (trusted-MDX
+  RCE class + next's bundled postcss).
+- ✅ **Performance:** **production build green** — 48 pages, shared First-Load JS 105 kB, every route
+  < 200 kB (TRD §9 budget met); SSG/ISR for SEO surfaces; workers lazy.
+- ✅ **Ops:** [runbook](../infra/runbook.md) (queue stuck / judge down / DB restore),
+  [alert rules](../infra/alerts.md) (queue age >60s, error >2%, uptime), and a
+  [backup-restore drill script](../infra/backup-restore.sh).
+- ✅ Findings report: [docs/06-hardening-report.md](./06-hardening-report.md).
+- ⛔️ Deferred to deploy time: Lighthouse run (needs headless Chrome), pg_stat_statements index
+  review (needs live DB), Judge0 CE VM provisioning (separate session per TRD §7), object-level
+  authz (with Auth.js).
+
+## Next (post-launch backlog)
 
 - **Polish:** Playwright e2e (PRD stories #1–#5), axe-core CI, Canvas renderer >300 elements,
   run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap, editorials.
-- **Phase 6 — Hardening:** OWASP sweep, Lighthouse ≥90, bundle analysis, runbook, Judge0 CE
-  provisioning, backup-restore drill, alert rules.
+- **P1 features:** AI explanation layer (C5), Python/Pyodide (B7/C7), share `/s/:slug` pages,
+  streak-freeze cron, email digest, Judge0 + server-side Python judging.
+- **Launch:** Lighthouse in CI, deploy (Vercel + worker VM + Neon + Redis), engineering blog post
+  on the trace engine + Complexity Lab.
 
 See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md),
 [0002-step-vocabulary](./adr/0002-step-vocabulary.md),

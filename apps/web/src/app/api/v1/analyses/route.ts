@@ -1,5 +1,6 @@
 import { analysisCreate } from "@algolens/api-contracts";
 import { problemResponse } from "@/lib/api";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/v1/analyses — save/share a finished analysis.
@@ -9,6 +10,14 @@ import { problemResponse } from "@/lib/api";
  * neither is provisioned yet, so this validates and returns 501 per ADR-0003.
  */
 export async function POST(req: Request) {
+  // Rate limit: 10 analyses/min per client (TRD §7).
+  const rl = rateLimit(`analyses:${clientKey(req)}`, 10, 60_000);
+  if (!rl.ok) {
+    return problemResponse(429, "Too many analyses", "Limit is 10 per minute.", {
+      "retry-after": String(Math.ceil(rl.resetMs / 1000)),
+    });
+  }
+
   let body: unknown;
   try {
     body = await req.json();

@@ -2,6 +2,7 @@ import { locateLesson } from "@algolens/content";
 import { ImageResponse } from "next/og";
 import { ascii, ogFont } from "@/lib/og-font";
 
+export const dynamic = "force-dynamic"; // on-demand; see visualize OG note
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "AlgoLens lesson";

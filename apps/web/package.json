@@ -21,7 +21,7 @@
     "@algolens/viz-engine": "workspace:*",
     "@algolens/worker": "workspace:*",
     "lucide-react": "^0.468.0",
-    "next": "15.1.6",
+    "next": "^15.5.16",
     "next-mdx-remote": "^5.0.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -35,7 +35,7 @@
     "@types/node": "catalog:",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.0.0",
     "typescript": "catalog:",
     "vitest": "catalog:"

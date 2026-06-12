@@ -2,6 +2,9 @@ import { getAlgo } from "@algolens/algo-core";
 import { ImageResponse } from "next/og";
 import { ascii, ogFont } from "@/lib/og-font";
 
+// Generated on-demand (not prerendered at build) — keeps the build off the @vercel/og
+// asset-path bug on local Windows, and OG images are fine to render per-request.
+export const dynamic = "force-dynamic";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "AlgoLens visualization";

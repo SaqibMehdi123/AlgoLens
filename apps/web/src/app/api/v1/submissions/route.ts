@@ -1,6 +1,7 @@
 import { submissionCreate } from "@algolens/api-contracts";
 import { NextResponse } from "next/server";
 import { problemResponse } from "@/lib/api";
+import { clientKey, rateLimit } from "@/lib/rate-limit";
 import { createSubmission } from "@/lib/submissions";
 
 /**
@@ -9,6 +10,14 @@ import { createSubmission } from "@/lib/submissions";
  * process (rule 5). Returns 202 + id; progress streams on /submissions/:id/events.
  */
 export async function POST(req: Request) {
+  // Rate limit: 6 submissions/min per client (TRD §7).
+  const rl = rateLimit(`submissions:${clientKey(req)}`, 6, 60_000);
+  if (!rl.ok) {
+    return problemResponse(429, "Too many submissions", "Limit is 6 per minute.", {
+      "retry-after": String(Math.ceil(rl.resetMs / 1000)),
+    });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
