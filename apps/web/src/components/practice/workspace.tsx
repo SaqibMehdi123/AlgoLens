@@ -5,7 +5,7 @@ import { Button, cn } from "@algolens/ui";
 import { Activity, Check, CircleDashed, Loader2, Play, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { solvedStore } from "@/lib/solved";
+import { retentionStore, type Difficulty } from "@/lib/retention";
 import type { ExecResponse } from "@/workers/exec.worker";
 
 const VERDICT_LABEL: Record<string, { short: string; tone: string }> = {
@@ -30,6 +30,8 @@ interface SampleRun {
 export interface WorkspaceProps {
   slug: string;
   title: string;
+  difficulty: Difficulty;
+  tags: string[];
   starterCode: string;
   samples: { input: string; expected: string }[];
   hiddenCaseCount: number;
@@ -151,7 +153,7 @@ export function Workspace(props: WorkspaceProps) {
           setSubmitting(false);
           source.close();
           if (event.submission.status === "accepted") {
-            solvedStore.markSolved(props.slug);
+            retentionStore.recordProblemSolved(props.slug, props.difficulty, props.tags);
             try {
               sessionStorage.setItem("algolens-lab-code", code);
             } catch {

@@ -93,14 +93,39 @@ Tracks progress against the implementation roadmap (private planning docs).
 - ⛔️ Deferred: Judge0 CE on isolated VM (TRD §7 — explicitly a separate provisioning session),
   Python, editorials content, DB-backed submissions + rate limits, Playwright e2e for story #4.
 
+### Phase 5 — Retention layer (core complete)
+
+- ✅ `@algolens/retention` (pure, zero-dep, golden-tested): **SM-2 scheduler** (canonical EF deltas,
+  interval 1→6→16→45, lapse reset, interval previews, due queue); **timezone-correct streaks** —
+  `computeStreak` buckets by local calendar date, with a test proving the **Karachi UTC+5 edge**
+  (two studies in one local day spanning two UTC days count as one); **XP ledger + quadratic level
+  curve**; **data-driven badge evaluator**.
+- ✅ Device-local retention store (ADR-0005): `xp_events` ledger as source of truth (lesson XP
+  moved here from the progress store), SM-2 cards, solved set, review logs. Cards auto-created on
+  lesson completion (curated key facts in the manifest) + on the exact missed quiz.
+- ✅ `/review` meditative flow (docs/05 §5.7): single card, tap/space reveal, four grade buttons
+  with SM-2 interval previews, keyboard (space + 1–4), session-progress bar, summary screen,
+  teaching empty-state.
+- ✅ Dashboard (docs/05 §5.2): streak flame, XP/level ring, due-reviews card, GitHub-style activity
+  heatmap, continue-learning. `/profile` (docs/05 §5.8): stat tiles, heatmap, badge shelf.
+  Nav gains a Review icon with a live due-count badge.
+- ✅ Per-algorithm + per-lesson **OpenGraph images via next/og (satori)** (X5). Renders on
+  Linux/CI/Vercel; 500s only on local Windows when the install path contains spaces (a known
+  @vercel/og asset-URL bug — does not affect page rendering; see apps/web/src/lib/og-font.ts).
+- ✅ DB tables review_cards/review_logs/user_stats/xp_events/badges/user_badges (docs/03 §6–§7);
+  review/stats/badges contracts; grade + due routes validate → 501.
+- ⛔️ Deferred: streak-freeze BullMQ cron, cross-device sync (auth+DB), `/s/:slug` short-link share
+  pages with stored snapshots (needs DB), email digest (Resend), onboarding goal-picker.
+
 ## Next (not built yet)
 
-- **Polish:** Playwright e2e (PRD stories #1–#4), axe-core CI, Canvas renderer >300 elements,
+- **Polish:** Playwright e2e (PRD stories #1–#5), axe-core CI, Canvas renderer >300 elements,
   run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap, editorials.
-- **Phase 5 — Retention:** SM-2 reviews, streaks/badges, share OG images.
-- **Phase 6 — Hardening:** security/perf/ops passes; Judge0 CE provisioning.
+- **Phase 6 — Hardening:** OWASP sweep, Lighthouse ≥90, bundle analysis, runbook, Judge0 CE
+  provisioning, backup-restore drill, alert rules.
 
 See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md),
 [0002-step-vocabulary](./adr/0002-step-vocabulary.md),
 [0003-client-side-progress](./adr/0003-client-side-progress.md),
-[0004-direct-judge-in-memory-submissions](./adr/0004-direct-judge-in-memory-submissions.md).
+[0004-direct-judge-in-memory-submissions](./adr/0004-direct-judge-in-memory-submissions.md),
+[0005-retention-domain-package](./adr/0005-retention-domain-package.md).

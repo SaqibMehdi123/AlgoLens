@@ -45,6 +45,8 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
       <Workspace
         slug={p.slug}
         title={p.title}
+        difficulty={p.difficulty}
+        tags={p.tags}
         starterCode={p.starterCode}
         samples={samples}
         hiddenCaseCount={p.cases.filter((c) => !c.isSample).length}

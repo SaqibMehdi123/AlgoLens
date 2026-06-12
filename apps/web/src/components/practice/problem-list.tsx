@@ -5,7 +5,7 @@ import { cn } from "@algolens/ui";
 import { Check, Circle } from "lucide-react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { solvedStore } from "@/lib/solved";
+import { retentionStore } from "@/lib/retention";
 
 const DIFF_TONE: Record<string, string> = {
   intro: "text-sorted",
@@ -15,12 +15,12 @@ const DIFF_TONE: Record<string, string> = {
 };
 
 export function ProblemList({ problems }: { problems: ProblemSummary[] }) {
-  const solved = useSyncExternalStore(
-    solvedStore.subscribe,
-    solvedStore.getSnapshot,
-    solvedStore.getServerSnapshot,
+  const state = useSyncExternalStore(
+    retentionStore.subscribe,
+    retentionStore.getSnapshot,
+    retentionStore.getServerSnapshot,
   );
-  const solvedSet = new Set(solved);
+  const solvedSet = new Set(state.solved.map((s) => s.slug));
 
   return (
     <ul className="flex max-w-3xl flex-col gap-2">

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createProgressStore, XP_PER_LESSON } from "../src/lib/progress";
+import { createProgressStore } from "../src/lib/progress";
 
 function memoryStorage() {
   const map = new Map<string, string>();
@@ -25,7 +25,7 @@ describe("progress store", () => {
     expect(store.getLesson("big-o-notation").passedQuizzes).toEqual(["q1"]);
   });
 
-  it("completes only when scroll ≥ 90 AND all quizzes passed, awarding XP once", () => {
+  it("completes only when scroll ≥ 90 AND all quizzes passed, exactly once", () => {
     const store = createProgressStore(memoryStorage());
     store.updateScroll("l", 95);
     expect(store.tryComplete("l", 2)).toBe(false); // quizzes missing
@@ -33,7 +33,6 @@ describe("progress store", () => {
     store.recordQuizPass("l", "q2");
     expect(store.tryComplete("l", 2)).toBe(true); // transition
     expect(store.tryComplete("l", 2)).toBe(false); // already complete
-    expect(store.getSnapshot().xpTotal).toBe(XP_PER_LESSON);
     expect(store.isCompleted("l")).toBe(true);
   });
 
@@ -47,7 +46,7 @@ describe("progress store", () => {
 
   it("survives corrupt storage and missing storage", () => {
     const corrupt = { getItem: () => "{not json", setItem: vi.fn() };
-    expect(createProgressStore(corrupt).getSnapshot().xpTotal).toBe(0);
+    expect(createProgressStore(corrupt).getSnapshot().lessons).toEqual({});
     const none = createProgressStore(null);
     none.updateScroll("l", 10);
     expect(none.getLesson("l").scrollPct).toBe(10); // in-memory fallback

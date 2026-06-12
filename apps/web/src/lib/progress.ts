@@ -12,13 +12,10 @@ export interface LessonProgress {
 
 export interface ProgressState {
   lessons: Record<string, LessonProgress>;
-  xpTotal: number;
 }
 
-export const XP_PER_LESSON = 50;
-
 const STORAGE_KEY = "algolens-progress-v1";
-const EMPTY: ProgressState = { lessons: {}, xpTotal: 0 };
+const EMPTY: ProgressState = { lessons: {} };
 
 type StorageLike = Pick<Storage, "getItem" | "setItem">;
 
@@ -100,14 +97,13 @@ export function createProgressStore(storage: StorageLike | null = defaultStorage
 
     /**
      * Completion = read to the end (scroll ≥ 90) AND all quizzes passed (docs/03 §2 semantics).
-     * Awards XP exactly once. Returns true only on the transition.
+     * Returns true only on the transition; XP + review cards are awarded by the retention store.
      */
     tryComplete(slug: string, quizCount: number): boolean {
       const cur = lesson(slug);
       if (cur.completedAt) return false;
       if (cur.scrollPct < 90 || cur.passedQuizzes.length < quizCount) return false;
       persist({
-        xpTotal: state.xpTotal + XP_PER_LESSON,
         lessons: {
           ...state.lessons,
           [slug]: { ...cur, completedAt: new Date().toISOString() },

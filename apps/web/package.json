@@ -16,6 +16,7 @@
     "@algolens/api-contracts": "workspace:*",
     "@algolens/complexity": "workspace:*",
     "@algolens/content": "workspace:*",
+    "@algolens/retention": "workspace:*",
     "@algolens/ui": "workspace:*",
     "@algolens/viz-engine": "workspace:*",
     "@algolens/worker": "workspace:*",

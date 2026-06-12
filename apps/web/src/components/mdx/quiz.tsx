@@ -5,6 +5,7 @@ import { Check, CircleHelp, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { progressStore } from "@/lib/progress";
+import { retentionStore } from "@/lib/retention";
 import { useLessonSlug } from "./lesson-context";
 
 export interface QuizReplay {
@@ -53,7 +54,13 @@ export function Quiz({ id, type, prompt, code, options, answer, explanation, rep
     setSelected(i);
     const correct = i === answer;
     setResolved(correct ? "correct" : "wrong");
-    if (correct && lessonSlug) progressStore().recordQuizPass(lessonSlug, id);
+    if (!lessonSlug) return;
+    if (correct) {
+      progressStore().recordQuizPass(lessonSlug, id);
+    } else {
+      // The exact missed question becomes a review card (app-flow journey 6).
+      retentionStore.recordQuizMiss(lessonSlug, id, prompt, options[answer] ?? "");
+    }
   }
 
   return (

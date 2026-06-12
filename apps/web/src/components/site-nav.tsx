@@ -1,9 +1,11 @@
 "use client";
 
 import { cn } from "@algolens/ui";
-import { Activity, BookOpen, FlaskConical, Play, Sparkles } from "lucide-react";
+import { Activity, BookOpen, Brain, FlaskConical, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { statsSnapshot } from "@/lib/retention";
+import { useRetention } from "./retention/widgets";
 import { ThemeToggle } from "./theme-toggle";
 
 const pillars = [
@@ -15,6 +17,7 @@ const pillars = [
 
 export function SiteNav() {
   const pathname = usePathname();
+  const dueCount = statsSnapshot(useRetention()).dueCount;
   return (
     <header className="sticky top-0 z-40 border-b border-subtle bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-1 px-4 sm:px-6">
@@ -45,6 +48,23 @@ export function SiteNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/review"
+            aria-label={`Review${dueCount > 0 ? ` — ${dueCount} due` : ""}`}
+            className={cn(
+              "relative grid size-9 place-items-center rounded-lg transition-colors",
+              pathname === "/review"
+                ? "bg-raised text-foreground"
+                : "text-secondary hover:bg-raised hover:text-foreground",
+            )}
+          >
+            <Brain className="size-[18px]" />
+            {dueCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                {dueCount > 9 ? "9+" : dueCount}
+              </span>
+            )}
+          </Link>
           <ThemeToggle />
           <Link
             href="/dashboard"

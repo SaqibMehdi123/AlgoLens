@@ -5,8 +5,12 @@ import { cn } from "@algolens/ui";
 import { ArrowRight, Check, ChevronLeft, Circle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { XP_AWARDS } from "@algolens/retention";
 import { LessonContext } from "@/components/mdx/lesson-context";
-import { progressStore, XP_PER_LESSON } from "@/lib/progress";
+import { progressStore } from "@/lib/progress";
+import { retentionStore } from "@/lib/retention";
+
+const XP_PER_LESSON = XP_AWARDS.lesson_completed;
 
 export interface LessonShellProps {
   track: TrackMeta;
@@ -31,6 +35,15 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
   const passedCount = lessonProgress?.passedQuizzes.length ?? 0;
   const completed = Boolean(lessonProgress?.completedAt);
 
+  // On the completion transition, hand XP + review-card creation to the retention ledger.
+  function onComplete(): boolean {
+    if (store.tryComplete(lesson.slug, lesson.quizCount)) {
+      retentionStore.recordLessonComplete(lesson.slug, lesson.reviewCards);
+      return true;
+    }
+    return false;
+  }
+
   // Scroll tracking → monotonic progress + completion attempt (scroll ≥ 90 + quizzes passed).
   useEffect(() => {
     function onScroll() {
@@ -41,7 +54,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
       const read = total <= 0 ? 100 : Math.min(100, Math.max(0, (-rect.top / total) * 100));
       setScrollPct(read);
       store.updateScroll(lesson.slug, read);
-      if (store.tryComplete(lesson.slug, lesson.quizCount)) setJustCompleted(true);
+      if (onComplete()) setJustCompleted(true);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -50,7 +63,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
 
   // Quiz passes can complete the lesson while already scrolled to the bottom.
   useEffect(() => {
-    if (store.tryComplete(lesson.slug, lesson.quizCount)) setJustCompleted(true);
+    if (onComplete()) setJustCompleted(true);
   }, [passedCount, lesson.slug, lesson.quizCount, store]);
 
   return (
