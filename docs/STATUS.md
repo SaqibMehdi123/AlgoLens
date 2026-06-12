@@ -136,12 +136,36 @@ Tracks progress against the implementation roadmap (private planning docs).
   review (needs live DB), Judge0 CE VM provisioning (separate session per TRD §7), object-level
   authz (with Auth.js).
 
+### Practice — LeetCode-style "implement a function", multi-language (this iteration)
+
+- ✅ Problems rebuilt to **implement-a-function** format with a type-DSL signature; **5-language
+  starter stubs (JS/TS/Python/C++/Java) auto-generated** from the signature (no hand-written stubs).
+- ✅ Problem set expanded to **32** across arrays/strings/searching/hashing/sorting/math/DP/two-
+  pointers and intro→medium difficulty. Every JS reference is judge-verified against its cases (CI).
+- ✅ Judge rewritten to the **function-call harness**: defines the function, calls it per case with
+  structured args, compares the return value (exact / unordered). Args cross the sandbox boundary
+  as a JSON string and are re-parsed inside — closing the host-object vm-escape vector. **TypeScript
+  judged** (transpiled). Malicious suite re-expressed and green (10/10); all 32 references pass.
+- ✅ Workspace: **language selector** + per-language code buffers + signature header; client sample
+  runs (JS) via the exec-worker function harness; submit JS/TS → judged (verified live: Two Sum →
+  Accepted 5/5 over SSE). **C++/Java/Python → honest 501** pointing at the Judge0 host (verified).
+- ✅ Hidden-case leak tests updated for structured cases (grep every payload; submission redaction).
+- ⛔️ Deferred (as you noted): real **C++/Java/Python execution** (Judge0 VM, TRD §7) and **Pyodide**
+  for in-browser Python sample runs.
+
+> **Dev-mode caveat:** the Phase-6 security bump (next → 15.5, fixing 2 criticals) introduced a
+> next-mdx-remote × Next-15.5 regression: **lesson** MDX pages 500 under `next dev` but render
+> correctly in the **production build** (72/72 SSG pages) and `next start`. Practice statements were
+> moved to `react-markdown` and work in both. Permanent fix (e.g. `@next/mdx`) is tracked below.
+
 ## Next (post-launch backlog)
 
 - **Polish:** Playwright e2e (PRD stories #1–#5), axe-core CI, Canvas renderer >300 elements,
   run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap, editorials.
 - **P1 features:** AI explanation layer (C5), Python/Pyodide (B7/C7), share `/s/:slug` pages,
-  streak-freeze cron, email digest, Judge0 + server-side Python judging.
+  streak-freeze cron, email digest, **Judge0 host for C++/Java/Python submissions**.
+- **Lesson MDX:** migrate lessons to `@next/mdx` (file-based) to remove the next-mdx-remote
+  `next dev` regression so lessons render in dev too (they already render in the prod build).
 - **Launch:** Lighthouse in CI, deploy (Vercel + worker VM + Neon + Redis), engineering blog post
   on the trace engine + Complexity Lab.
 

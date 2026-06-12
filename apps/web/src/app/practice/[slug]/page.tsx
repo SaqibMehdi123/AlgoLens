@@ -1,8 +1,9 @@
-import { getProblem, problems } from "@algolens/content";
+import { allStarters, getProblem, problems, problemSignature } from "@algolens/content";
 import { ChevronLeft } from "lucide-react";
-import { MDXRemote } from "next-mdx-remote/rsc";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Workspace } from "@/components/practice/workspace";
 
 export function generateStaticParams() {
@@ -16,8 +17,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 /**
- * Problem workspace (docs/05 §5.6). The full problem definition (incl. hidden cases) exists
- * only here on the server — the client component receives samples and counts, nothing more.
+ * Problem workspace (docs/05 §5.6). The full problem definition (incl. hidden cases) exists only
+ * here on the server; the client receives the signature, generated starter stubs, and samples.
  */
 export default async function ProblemPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -26,7 +27,7 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
 
   const samples = p.cases
     .filter((c) => c.isSample)
-    .map((c) => ({ input: c.input, expected: c.expected }));
+    .map((c) => ({ args: c.args, expected: c.expected }));
 
   return (
     <div className="py-6">
@@ -44,15 +45,17 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
 
       <Workspace
         slug={p.slug}
-        title={p.title}
         difficulty={p.difficulty}
         tags={p.tags}
-        starterCode={p.starterCode}
+        functionName={p.functionName}
+        signature={problemSignature(p)}
+        starterCode={allStarters(p)}
         samples={samples}
         hiddenCaseCount={p.cases.filter((c) => !c.isSample).length}
         timeLimitMs={p.timeLimitMs}
+        compare={p.compare}
         lessonSlug={p.lessonSlug}
-        statement={<MDXRemote source={p.statementMd} />}
+        statement={<ReactMarkdown remarkPlugins={[remarkGfm]}>{p.statementMd}</ReactMarkdown>}
       />
     </div>
   );

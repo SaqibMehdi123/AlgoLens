@@ -11,7 +11,7 @@ import { EventEmitter } from "node:events";
 import { randomUUID } from "node:crypto";
 import type { CaseResultPublic, SubmissionEvent, SubmissionView } from "@algolens/api-contracts";
 import { getProblem } from "@algolens/content";
-import { judgeSubmission, type CaseStatus } from "@algolens/worker/judge";
+import { judgeSubmission, type CaseStatus, type JudgeLanguage } from "@algolens/worker/judge";
 
 interface SubmissionRecord {
   view: SubmissionView;
@@ -63,6 +63,8 @@ export function createSubmission(input: {
   problemSlug: string;
   sourceCode: string;
   idempotencyKey: string;
+  /** Only "javascript" | "typescript" reach this store; the route rejects the rest (Judge0). */
+  language: JudgeLanguage;
 }): CreateResult | { error: "problem_not_found" } {
   const s = store();
   const existing = s.byIdempotency.get(input.idempotencyKey);
@@ -86,12 +88,12 @@ export function createSubmission(input: {
   s.byIdempotency.set(input.idempotencyKey, id);
 
   // Fire-and-forget judging; SSE subscribers get case ticks as they land.
-  void runJudge(id, input.sourceCode);
+  void runJudge(id, input.sourceCode, input.language);
 
   return { id, deduplicated: false };
 }
 
-async function runJudge(id: string, sourceCode: string): Promise<void> {
+async function runJudge(id: string, sourceCode: string, language: JudgeLanguage): Promise<void> {
   const record = store().byId.get(id);
   if (!record) return;
   const problem = getProblem(record.view.problemSlug);
@@ -102,8 +104,11 @@ async function runJudge(id: string, sourceCode: string): Promise<void> {
 
   try {
     const result = await judgeSubmission({
+      language,
       sourceCode,
-      cases: problem.cases.map((c) => ({ input: c.input, expected: c.expected })),
+      functionName: problem.functionName,
+      compare: problem.compare,
+      cases: problem.cases.map((c) => ({ args: c.args, expected: c.expected })),
       timeLimitMs: problem.timeLimitMs,
     });
 

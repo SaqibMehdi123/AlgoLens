@@ -1,17 +1,19 @@
 /// <reference lib="webworker" />
 /**
- * exec-worker (TRD §1): client-side SAMPLE runs. User code executes here — never on the page
- * thread (rule 5). The page enforces the 5s wall-clock kill by terminating this worker; the
- * console shim caps output at 64k chars per case.
+ * exec-worker (TRD §1): client-side SAMPLE runs for the function harness. User code executes here
+ * — never on the page thread (rule 5). The page enforces a 5s wall-clock kill by terminating this
+ * worker. The function is defined once, then called per sample; the returned value is JSON-
+ * normalised (matching the server judge) before being posted back for comparison.
  */
 export interface ExecRequest {
   type: "exec";
   code: string;
-  inputs: string[];
+  functionName: string;
+  argsList: unknown[][];
 }
 
 export interface ExecCaseResult {
-  stdout: string;
+  value: unknown;
   error: string | null;
   ms: number;
 }
@@ -20,39 +22,36 @@ export type ExecResponse =
   | { type: "case"; index: number; result: ExecCaseResult }
   | { type: "done" };
 
-const OUTPUT_CAP = 64_000;
-
 self.onmessage = (event: MessageEvent<ExecRequest>) => {
-  const { code, inputs } = event.data;
-  for (let index = 0; index < inputs.length; index++) {
-    const lines: string[] = [];
-    let chars = 0;
-    let error: string | null = null;
-    const sandboxConsole = {
-      log: (...args: unknown[]) => {
-        const line = args.map(String).join(" ");
-        chars += line.length;
-        if (chars > OUTPUT_CAP) throw new Error("output limit exceeded (64k)");
-        lines.push(line);
-      },
-      error: () => undefined,
-      warn: () => undefined,
-    };
-    const t0 = performance.now();
-    try {
-      // Untrusted code, but we're inside a dedicated worker: no DOM, terminated on timeout.
-      const fn = new Function("input", "console", `"use strict";\n${code}`);
-      fn(inputs[index], sandboxConsole);
-    } catch (e) {
-      error = (e as Error).message ?? String(e);
+  const { code, functionName, argsList } = event.data;
+
+  let fn: ((...args: unknown[]) => unknown) | null = null;
+  let defError: string | null = null;
+  try {
+    const factory = new Function(
+      `"use strict";\n${code}\n;return (typeof ${functionName} === "function") ? ${functionName} : null;`,
+    );
+    fn = factory() as ((...args: unknown[]) => unknown) | null;
+    if (typeof fn !== "function") {
+      defError = `${functionName} is not defined — check the function name/signature.`;
     }
-    const ms = performance.now() - t0;
-    const response: ExecResponse = {
-      type: "case",
-      index,
-      result: { stdout: lines.join("\n"), error, ms },
-    };
-    self.postMessage(response);
+  } catch (e) {
+    defError = (e as Error).message;
   }
-  self.postMessage({ type: "done" } satisfies ExecResponse);
+
+  for (let index = 0; index < argsList.length; index++) {
+    const t0 = performance.now();
+    let value: unknown = null;
+    let error: string | null = defError;
+    if (fn && !defError) {
+      try {
+        const raw = fn(...argsList[index]!);
+        value = raw === undefined ? null : (JSON.parse(JSON.stringify(raw)) as unknown);
+      } catch (e) {
+        error = (e as Error).message;
+      }
+    }
+    self.postMessage({ type: "case", index, result: { value, error, ms: performance.now() - t0 } });
+  }
+  self.postMessage({ type: "done" });
 };

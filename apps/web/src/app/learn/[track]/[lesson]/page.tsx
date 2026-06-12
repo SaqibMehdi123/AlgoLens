@@ -1,5 +1,5 @@
 import { locateLesson, tracks, flattenLessons } from "@algolens/content";
-import { MDXRemote } from "next-mdx-remote/rsc";
+import { compileMDX } from "next-mdx-remote/rsc";
 import { notFound } from "next/navigation";
 import remarkGfm from "remark-gfm";
 import { Callout } from "@/components/mdx/callout";
@@ -45,13 +45,18 @@ export default async function LessonPage({ params }: { params: Promise<Params> }
 
   const source = readLessonSource(loc.lesson);
 
+  // Compile MDX to an already-resolved node here (server), then pass it as children. Passing the
+  // resolved content — rather than the async <MDXRemote/> element — into the client LessonShell
+  // avoids the next-mdx-remote × Next-15.5 dev-runtime crash. Components are allowlisted (rule 4).
+  const { content } = await compileMDX({
+    source,
+    components: { Viz, Quiz, Callout },
+    options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
+  });
+
   return (
     <LessonShell track={loc.track} lesson={loc.lesson} next={loc.next}>
-      <MDXRemote
-        source={source}
-        components={{ Viz, Quiz, Callout }}
-        options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
-      />
+      {content}
     </LessonShell>
   );
 }

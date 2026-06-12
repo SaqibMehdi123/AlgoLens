@@ -1,14 +1,16 @@
 "use client";
 
 import type { CaseResultPublic, SubmissionEvent, SubmissionView } from "@algolens/api-contracts";
+import { LANGUAGES, type Language } from "@algolens/content";
 import { Button, cn } from "@algolens/ui";
-import { Activity, Check, CircleDashed, Loader2, Play, Send, X } from "lucide-react";
+import { Activity, Check, CircleDashed, Info, Loader2, Play, Send, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { resultsEqual, type CompareMode } from "@/lib/compare";
 import { retentionStore, type Difficulty } from "@/lib/retention";
 import type { ExecResponse } from "@/workers/exec.worker";
 
-const VERDICT_LABEL: Record<string, { short: string; tone: string }> = {
+const VERDICT: Record<string, { short: string; tone: string }> = {
   accepted: { short: "Accepted", tone: "text-sorted" },
   wrong_answer: { short: "Wrong Answer", tone: "text-swap" },
   time_limit: { short: "Time Limit Exceeded", tone: "text-compare" },
@@ -20,38 +22,47 @@ const VERDICT_LABEL: Record<string, { short: string; tone: string }> = {
   running: { short: "Running", tone: "text-secondary" },
 };
 
+const LOCAL_LANGS: Language[] = ["javascript", "typescript"]; // judged in-sandbox now
+
 interface SampleRun {
-  stdout: string;
+  pass: boolean;
+  got: unknown;
   error: string | null;
   ms: number;
-  pass: boolean;
 }
 
 export interface WorkspaceProps {
   slug: string;
-  title: string;
   difficulty: Difficulty;
   tags: string[];
-  starterCode: string;
-  samples: { input: string; expected: string }[];
+  functionName: string;
+  signature: string;
+  starterCode: Record<Language, string>;
+  samples: { args: unknown[]; expected: unknown }[];
   hiddenCaseCount: number;
   timeLimitMs: number;
+  compare: CompareMode;
   statement: ReactNode;
   lessonSlug: string | null;
 }
 
 export function Workspace(props: WorkspaceProps) {
-  const [code, setCode] = useState(props.starterCode);
+  const [language, setLanguage] = useState<Language>("javascript");
+  const [codeByLang, setCodeByLang] = useState<Record<Language, string>>(props.starterCode);
   const [tab, setTab] = useState<"description" | "submissions">("description");
   const [sampleRuns, setSampleRuns] = useState<(SampleRun | null)[] | null>(null);
   const [running, setRunning] = useState(false);
   const [submission, setSubmission] = useState<SubmissionView | null>(null);
   const [liveCases, setLiveCases] = useState<CaseResultPublic[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [submitNote, setSubmitNote] = useState<{ title: string; detail: string } | null>(null);
   const [history, setHistory] = useState<SubmissionView[]>([]);
   const workerRef = useRef<Worker | null>(null);
   const sourceRef = useRef<EventSource | null>(null);
   const killTimer = useRef<number | null>(null);
+
+  const code = codeByLang[language];
+  const canRunSamples = language === "javascript";
 
   useEffect(
     () => () => {
@@ -62,7 +73,11 @@ export function Workspace(props: WorkspaceProps) {
     [],
   );
 
-  // --- Run samples client-side (exec-worker, 5s kill) ------------------------------------------
+  function setCode(next: string) {
+    setCodeByLang((prev) => ({ ...prev, [language]: next }));
+  }
+
+  // --- client-side sample runs (JS only; exec-worker, 5s kill) ---------------------------------
   function runSamples() {
     workerRef.current?.terminate();
     setRunning(true);
@@ -74,9 +89,7 @@ export function Workspace(props: WorkspaceProps) {
       worker.terminate();
       setRunning(false);
       setSampleRuns((prev) =>
-        (prev ?? []).map(
-          (r) => r ?? { stdout: "", error: "killed after 5s (infinite loop?)", ms: 5000, pass: false },
-        ),
+        (prev ?? []).map((r) => r ?? { pass: false, got: null, error: "killed after 5s (infinite loop?)", ms: 5000 }),
       );
     }, 5000);
 
@@ -86,11 +99,11 @@ export function Workspace(props: WorkspaceProps) {
         setSampleRuns((prev) => {
           const next = [...(prev ?? [])];
           const expected = props.samples[msg.index]!.expected;
-          const normalize = (s: string) =>
-            s.replace(/\r\n/g, "\n").split("\n").map((l) => l.trimEnd()).join("\n").trim();
           next[msg.index] = {
-            ...msg.result,
-            pass: msg.result.error === null && normalize(msg.result.stdout) === normalize(expected),
+            got: msg.result.value,
+            error: msg.result.error,
+            ms: msg.result.ms,
+            pass: msg.result.error === null && resultsEqual(msg.result.value, expected, props.compare),
           };
           return next;
         });
@@ -101,40 +114,35 @@ export function Workspace(props: WorkspaceProps) {
         worker.terminate();
       }
     };
-
-    worker.postMessage({ type: "exec", code, inputs: props.samples.map((s) => s.input) });
+    worker.postMessage({
+      type: "exec",
+      code,
+      functionName: props.functionName,
+      argsList: props.samples.map((s) => s.args),
+    });
   }
 
-  // --- Submit (server judge via SSE) ------------------------------------------------------------
+  // --- submit (server judge via SSE) -----------------------------------------------------------
   async function submit() {
     setSubmitting(true);
     setSubmission(null);
     setLiveCases([]);
+    setSubmitNote(null);
     try {
       const res = await fetch("/api/v1/submissions", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           problemSlug: props.slug,
-          language: "javascript",
+          language,
           sourceCode: code,
           idempotencyKey: crypto.randomUUID(),
         }),
       });
       if (!res.ok) {
         const problem = (await res.json()) as { title?: string; detail?: string };
-        setSubmission({
-          id: "error",
-          problemSlug: props.slug,
-          status: "judge_error",
-          passedCount: 0,
-          totalCount: 0,
-          runtimeMs: null,
-          cases: [],
-          createdAt: new Date().toISOString(),
-        });
+        setSubmitNote({ title: problem.title ?? "Submission failed", detail: problem.detail ?? "" });
         setSubmitting(false);
-        console.error(problem);
         return;
       }
       const { id } = (await res.json()) as { id: string };
@@ -163,7 +171,7 @@ export function Workspace(props: WorkspaceProps) {
         }
       };
       source.onerror = () => {
-        // EventSource auto-reconnects; each reconnect re-receives a full snapshot.
+        /* EventSource auto-reconnects; each reconnect re-receives a snapshot. */
       };
     } catch {
       setSubmitting(false);
@@ -171,7 +179,8 @@ export function Workspace(props: WorkspaceProps) {
   }
 
   const totalCases = submission?.totalCount ?? 0;
-  const verdict = submission && VERDICT_LABEL[submission.status];
+  const verdict = submission && VERDICT[submission.status];
+  const fmt = (v: unknown) => JSON.stringify(v);
 
   return (
     <div className="grid gap-5 py-4 lg:grid-cols-2">
@@ -200,35 +209,44 @@ export function Workspace(props: WorkspaceProps) {
           <span className="ml-auto self-center text-xs text-muted">Editorial 🔒 after launch</span>
         </div>
 
-        {tab === "description" && (
+        {tab === "description" ? (
           <article className="prose prose-invert max-w-none prose-p:text-secondary prose-strong:text-foreground prose-a:text-primary prose-code:rounded prose-code:bg-raised prose-code:px-1 prose-code:font-mono prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none">
+            <div className="not-prose mb-4 rounded-lg border border-subtle bg-raised px-3 py-2 font-mono text-xs text-secondary">
+              implement <span className="text-foreground">{props.signature}</span>
+            </div>
             {props.statement}
-            <h3>Samples</h3>
-            {props.samples.map((s, i) => (
-              <pre key={i} className="border border-subtle bg-raised">
-                <code>{`input:\n${s.input}\n\noutput:\n${s.expected}`}</code>
+            <h3>Examples</h3>
+            {props.samples.map((sm, i) => (
+              <pre key={i} className="not-prose mb-2 overflow-x-auto rounded-lg border border-subtle bg-raised p-3 font-mono text-xs">
+                <div className="text-secondary">
+                  input:{" "}
+                  <span className="text-foreground">
+                    {props.functionName}({sm.args.map((a) => fmt(a)).join(", ")})
+                  </span>
+                </div>
+                <div className="text-secondary">
+                  output: <span className="text-foreground">{fmt(sm.expected)}</span>
+                </div>
               </pre>
             ))}
             <p className="text-xs">
               Submitting also runs {props.hiddenCaseCount} hidden case
-              {props.hiddenCaseCount === 1 ? "" : "s"}. Time limit: {props.timeLimitMs} ms per case.
+              {props.hiddenCaseCount === 1 ? "" : "s"}. Time limit: {props.timeLimitMs} ms/case.
             </p>
           </article>
-        )}
-
-        {tab === "submissions" && (
+        ) : (
           <ul className="flex flex-col gap-2">
             {history.length === 0 && <li className="text-sm text-muted">No submissions this session yet.</li>}
-            {history.map((s, i) => (
+            {history.map((sub, i) => (
               <li key={i} className="flex items-center gap-3 rounded-lg border border-subtle bg-surface px-3 py-2 text-sm">
-                <span className={cn("font-semibold", VERDICT_LABEL[s.status]?.tone)}>
-                  {VERDICT_LABEL[s.status]?.short ?? s.status}
+                <span className={cn("font-semibold", VERDICT[sub.status]?.tone)}>
+                  {VERDICT[sub.status]?.short ?? sub.status}
                 </span>
                 <span className="font-mono text-xs text-secondary">
-                  {s.passedCount}/{s.totalCount} cases
+                  {sub.passedCount}/{sub.totalCount}
                 </span>
                 <span className="ml-auto font-mono text-xs text-muted">
-                  {new Date(s.createdAt).toLocaleTimeString()}
+                  {new Date(sub.createdAt).toLocaleTimeString()}
                 </span>
               </li>
             ))}
@@ -236,8 +254,29 @@ export function Workspace(props: WorkspaceProps) {
         )}
       </div>
 
-      {/* Right: editor + results drawer */}
+      {/* Right: editor + results */}
       <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-secondary">Language</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+            aria-label="Language"
+            className="rounded-lg border border-subtle bg-raised px-2.5 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+          {!LOCAL_LANGS.includes(language) && (
+            <span className="flex items-center gap-1 text-xs text-muted">
+              <Info className="size-3.5" /> runs on the Judge0 host
+            </span>
+          )}
+        </div>
+
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -246,18 +285,28 @@ export function Workspace(props: WorkspaceProps) {
           aria-label="Solution editor"
           className="w-full resize-y rounded-xl border border-subtle bg-surface p-4 font-mono text-[13px] leading-6 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={runSamples} disabled={running || submitting}>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={runSamples} disabled={!canRunSamples || running || submitting}>
             {running ? <Loader2 className="animate-spin" /> : <Play />}
             Run samples
           </Button>
-          <Button onClick={submit} disabled={running || submitting}>
+          <Button onClick={submit} disabled={submitting}>
             {submitting ? <Loader2 className="animate-spin" /> : <Send />}
             Submit
           </Button>
+          {!canRunSamples && (
+            <span className="text-xs text-muted">Run samples is available for JavaScript — Submit to judge.</span>
+          )}
         </div>
 
-        {/* Sample results */}
+        {submitNote && (
+          <div className="rounded-xl border border-[var(--viz-compare)]/50 bg-[color-mix(in_srgb,var(--viz-compare)_8%,transparent)] p-4 text-sm" role="status">
+            <p className="font-semibold text-foreground">{submitNote.title}</p>
+            {submitNote.detail && <p className="mt-1 text-secondary">{submitNote.detail}</p>}
+          </div>
+        )}
+
         {sampleRuns && (
           <section className="rounded-xl border border-subtle bg-surface p-4" aria-live="polite">
             <h3 className="mb-2 text-sm font-medium text-foreground">Sample runs (in your browser)</h3>
@@ -276,8 +325,7 @@ export function Workspace(props: WorkspaceProps) {
                       ) : (
                         !run.pass && (
                           <p className="mt-1 text-secondary">
-                            got {JSON.stringify(run.stdout)} · want{" "}
-                            {JSON.stringify(props.samples[i]!.expected)}
+                            got {fmt(run.got)} · want {fmt(props.samples[i]!.expected)}
                           </p>
                         )
                       )}
@@ -289,7 +337,6 @@ export function Workspace(props: WorkspaceProps) {
           </section>
         )}
 
-        {/* Submission progress + verdict */}
         {submission && (
           <section className="rounded-xl border border-subtle bg-surface p-4" aria-live="polite">
             <h3 className="mb-2 text-sm font-medium text-foreground">

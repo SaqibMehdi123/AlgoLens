@@ -28,14 +28,25 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return problemResponse(400, "Validation failed", parsed.error.issues[0]?.message);
   }
-  if (parsed.data.language !== "javascript") {
-    return problemResponse(501, "Language not yet supported", "Python arrives with Judge0 (TRD §6 P1).");
+  const { language } = parsed.data;
+  // JS/TS are judged locally in the isolated sandbox; compiled/Python languages require the
+  // Judge0 host (TRD §7), which isn't provisioned in this environment — honest 501, not a fake run.
+  if (language !== "javascript" && language !== "typescript") {
+    const names: Record<string, string> = { python: "Python", cpp: "C++", java: "Java" };
+    return problemResponse(
+      501,
+      `${names[language] ?? language} judging not available here`,
+      "JavaScript and TypeScript are judged in the isolated sandbox now. C++, Java, and Python " +
+        "run on the self-hosted Judge0 VM (TRD §7) — write your solution here; enable execution by " +
+        "provisioning Judge0 per docs/runbook.md.",
+    );
   }
 
   const created = createSubmission({
     problemSlug: parsed.data.problemSlug,
     sourceCode: parsed.data.sourceCode,
     idempotencyKey: parsed.data.idempotencyKey,
+    language,
   });
   if ("error" in created) {
     return problemResponse(404, "Problem not found");
