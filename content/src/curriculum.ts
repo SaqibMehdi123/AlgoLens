@@ -30,6 +30,10 @@ export const foundationsTrack: TrackMeta = {
           quizCount: 2,
           prerequisites: [],
           practiceSlug: "count-pairs-with-sum",
+          reviewCards: [
+            { front: "What does Big-O measure?", back: "Asymptotic growth in **operations** as input size n grows — not wall-clock seconds." },
+            { front: "Combine two nested loops over the same input.", back: "Nesting multiplies: n · n = O(n²). Sequential loops take the max." },
+          ],
         },
       ],
     },
@@ -50,6 +54,10 @@ export const foundationsTrack: TrackMeta = {
           quizCount: 2,
           prerequisites: ["big-o-notation"],
           practiceSlug: "binary-search-position",
+          reviewCards: [
+            { front: "Time complexity of binary search?", back: "O(log n) — each comparison halves the search window." },
+            { front: "What precondition does binary search require?", back: "A **sorted** array. On unsorted data it fails silently." },
+          ],
         },
       ],
     },
@@ -70,6 +78,10 @@ export const foundationsTrack: TrackMeta = {
           quizCount: 2,
           prerequisites: ["big-o-notation"],
           practiceSlug: null,
+          reviewCards: [
+            { front: "Which data structure drives BFS, and why?", back: "A **queue** (FIFO) — it produces the ring-by-ring order, so nearer nodes finish first." },
+            { front: "Time complexity of BFS on V nodes, E edges?", back: "O(V + E) — each node enqueued once, each edge examined once." },
+          ],
         },
       ],
     },

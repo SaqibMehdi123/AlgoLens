@@ -13,9 +13,11 @@ import {
   boolean,
   check,
   customType,
+  date,
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -53,6 +55,7 @@ export const quizType = pgEnum("quiz_type", [
   "complexity_pick",
 ]);
 export const codeLanguage = pgEnum("code_language", ["javascript", "typescript", "python"]);
+export const entityKind = pgEnum("entity_kind", ["lesson", "problem", "visualization", "analysis"]);
 
 // --- 1. Identity & accounts ---------------------------------------------------------------------
 
@@ -317,8 +320,99 @@ export const complexityAnalyses = pgTable(
   ],
 );
 
+// --- 6. Review — spaced repetition (SM-2, docs/03 §6) -------------------------------------------
+
+export const reviewCards = pgTable(
+  "review_cards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceKind: entityKind("source_kind").notNull(),
+    sourceId: uuid("source_id").notNull(),
+    frontMdx: text("front_mdx").notNull(),
+    backMdx: text("back_mdx").notNull(),
+    easeFactor: numeric("ease_factor", { precision: 4, scale: 2 }).notNull().default("2.50"),
+    intervalDays: integer("interval_days").notNull().default(0),
+    repetitions: integer("repetitions").notNull().default(0),
+    dueAt: timestamp("due_at", { withTimezone: true }).defaultNow().notNull(),
+    suspended: boolean("suspended").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.userId, t.sourceKind, t.sourceId, t.frontMdx),
+    index("review_cards_due_idx").on(t.userId, t.dueAt),
+  ],
+);
+
+export const reviewLogs = pgTable("review_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardId: uuid("card_id")
+    .notNull()
+    .references(() => reviewCards.id, { onDelete: "cascade" }),
+  grade: smallint("grade").notNull(),
+  reviewedAt: createdAt(),
+  intervalAfter: integer("interval_after").notNull(),
+});
+
+// --- 7. Gamification & activity (docs/03 §7) ----------------------------------------------------
+
+export const userStats = pgTable("user_stats", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  xpTotal: integer("xp_total").notNull().default(0),
+  level: integer("level").notNull().default(1),
+  currentStreak: integer("current_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  streakFreezes: integer("streak_freezes").notNull().default(1),
+  lastActiveOn: date("last_active_on"),
+});
+
+export const xpEvents = pgTable(
+  "xp_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    reason: text("reason").notNull(),
+    refKind: entityKind("ref_kind"),
+    refId: uuid("ref_id"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("xp_events_user_idx").on(t.userId, t.createdAt)],
+);
+
+export const badges = pgTable("badges", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(),
+  criteria: jsonb("criteria").notNull(),
+});
+
+export const userBadges = pgTable(
+  "user_badges",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    badgeId: uuid("badge_id")
+      .notNull()
+      .references(() => badges.id, { onDelete: "cascade" }),
+    awardedAt: createdAt(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.badgeId] })],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type ReviewCard = typeof reviewCards.$inferSelect;
+export type UserStats = typeof userStats.$inferSelect;
 export type Visualization = typeof visualizations.$inferSelect;
 export type NewVisualization = typeof visualizations.$inferInsert;
 export type ComplexityAnalysis = typeof complexityAnalyses.$inferSelect;

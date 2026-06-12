@@ -24,6 +24,8 @@ export interface LessonMeta {
   prerequisites: string[];
   /** Linked practice problem slug (Phase 4); null until the problem exists. */
   practiceSlug: string | null;
+  /** Key facts turned into SM-2 review cards on lesson completion (docs/03 §6). */
+  reviewCards: { front: string; back: string }[];
 }
 
 export interface ModuleMeta {
