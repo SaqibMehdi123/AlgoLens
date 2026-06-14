@@ -50,6 +50,10 @@ pnpm typecheck    # tsc --noEmit across the monorepo
 pnpm dev          # boots apps/web on http://localhost:3000
 ```
 
+Visualize, Learn, the Complexity Lab, Practice (JS/TS), and Retention all work with **no setup**
+(state is device-local). To add a database, accounts, multi-language judging, observability, or to
+deploy, follow [`docs/SETUP.md`](./docs/SETUP.md) — exact step-by-step.
+
 ## Build order
 
 The build follows the implementation roadmap phase by phase: foundation → visualization
