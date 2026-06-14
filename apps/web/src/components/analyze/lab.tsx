@@ -12,6 +12,7 @@ import {
 import { cn, Button } from "@algolens/ui";
 import { Play, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CodeEditorLazy } from "@/components/code-editor-lazy";
 import type { BenchMessage } from "@/workers/bench.worker";
 import { AnnotatedSource } from "./annotated-source";
 import { GrowthChart } from "./growth-chart";
@@ -122,17 +123,10 @@ export function ComplexityLab() {
     <div className="grid gap-5 py-4 lg:grid-cols-2">
       {/* Left: editor + generator + run */}
       <div className="flex flex-col gap-3">
-        <label className="text-xs font-medium uppercase tracking-wide text-muted" htmlFor="lab-code">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted">
           Your function (JavaScript)
-        </label>
-        <textarea
-          id="lab-code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          spellCheck={false}
-          rows={16}
-          className="w-full resize-y rounded-xl border border-subtle bg-surface p-4 font-mono text-[13px] leading-6 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        </p>
+        <CodeEditorLazy value={code} language="javascript" onChange={setCode} ariaLabel="Function to analyze" />
 
         <fieldset>
           <legend className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">

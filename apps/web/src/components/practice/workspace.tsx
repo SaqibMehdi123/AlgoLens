@@ -6,6 +6,7 @@ import { Button, cn } from "@algolens/ui";
 import { Activity, Check, CircleDashed, Info, Loader2, Play, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { CodeEditorLazy } from "@/components/code-editor-lazy";
 import { resultsEqual, type CompareMode } from "@/lib/compare";
 import { retentionStore, type Difficulty } from "@/lib/retention";
 import type { ExecResponse } from "@/workers/exec.worker";
@@ -277,14 +278,7 @@ export function Workspace(props: WorkspaceProps) {
           )}
         </div>
 
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          spellCheck={false}
-          rows={16}
-          aria-label="Solution editor"
-          className="w-full resize-y rounded-xl border border-subtle bg-surface p-4 font-mono text-[13px] leading-6 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        <CodeEditorLazy value={code} language={language} onChange={setCode} ariaLabel="Solution editor" />
 
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={runSamples} disabled={!canRunSamples || running || submitting}>

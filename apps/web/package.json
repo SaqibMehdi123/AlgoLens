@@ -14,6 +14,12 @@
   "dependencies": {
     "@algolens/algo-core": "workspace:*",
     "@algolens/api-contracts": "workspace:*",
+    "@codemirror/lang-cpp": "^6.0.2",
+    "@codemirror/lang-java": "^6.0.1",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-python": "^6.1.6",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@uiw/react-codemirror": "^4.23.7",
     "@algolens/complexity": "workspace:*",
     "@algolens/content": "workspace:*",
     "@algolens/retention": "workspace:*",
