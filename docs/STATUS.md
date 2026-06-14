@@ -153,10 +153,13 @@ Tracks progress against the implementation roadmap (private planning docs).
 - ⛔️ Deferred (as you noted): real **C++/Java/Python execution** (Judge0 VM, TRD §7) and **Pyodide**
   for in-browser Python sample runs.
 
-> **Dev-mode caveat:** the Phase-6 security bump (next → 15.5, fixing 2 criticals) introduced a
-> next-mdx-remote × Next-15.5 regression: **lesson** MDX pages 500 under `next dev` but render
-> correctly in the **production build** (72/72 SSG pages) and `next start`. Practice statements were
-> moved to `react-markdown` and work in both. Permanent fix (e.g. `@next/mdx`) is tracked below.
+### Lesson MDX dev fix — DONE
+
+- ✅ Lessons now render in **`next dev` and the production build**. Root cause was the
+  next-mdx-remote × Next-15.5 (React 19) `jsxDEV` mismatch. Fix: compile lesson MDX with
+  `@mdx-js/mdx` `evaluate`, passing the **production** JSX runtime (`react/jsx-runtime`) +
+  `development:false` explicitly, so dev uses `jsx` (not `jsxDEV`). next-mdx-remote was removed
+  entirely (practice statements use `react-markdown`), which also dropped its audit advisories.
 
 ## Next (post-launch backlog)
 
@@ -164,8 +167,6 @@ Tracks progress against the implementation roadmap (private planning docs).
   run-your-own-code mode (A8), content sprint to 25 lessons, Monaco swap, editorials.
 - **P1 features:** AI explanation layer (C5), Python/Pyodide (B7/C7), share `/s/:slug` pages,
   streak-freeze cron, email digest, **Judge0 host for C++/Java/Python submissions**.
-- **Lesson MDX:** migrate lessons to `@next/mdx` (file-based) to remove the next-mdx-remote
-  `next dev` regression so lessons render in dev too (they already render in the prod build).
 - **Launch:** Lighthouse in CI, deploy (Vercel + worker VM + Neon + Redis), engineering blog post
   on the trace engine + Complexity Lab.
 

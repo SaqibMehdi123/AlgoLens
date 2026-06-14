@@ -1,6 +1,7 @@
-import { locateLesson, tracks, flattenLessons } from "@algolens/content";
-import { compileMDX } from "next-mdx-remote/rsc";
+import { evaluate } from "@mdx-js/mdx";
+import { flattenLessons, locateLesson, tracks } from "@algolens/content";
 import { notFound } from "next/navigation";
+import * as jsxRuntime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
 import { Callout } from "@/components/mdx/callout";
 import { Quiz } from "@/components/mdx/quiz";
@@ -14,9 +15,7 @@ interface Params {
 }
 
 export function generateStaticParams(): Params[] {
-  return tracks.flatMap((t) =>
-    flattenLessons(t).map((l) => ({ track: t.slug, lesson: l.slug })),
-  );
+  return tracks.flatMap((t) => flattenLessons(t).map((l) => ({ track: t.slug, lesson: l.slug })));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }) {
@@ -26,17 +25,16 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
   return {
     title: loc.lesson.title,
     description: loc.lesson.summary,
-    openGraph: {
-      title: `${loc.lesson.title} · AlgoLens`,
-      description: loc.lesson.summary,
-      type: "article",
-    },
+    openGraph: { title: `${loc.lesson.title} · AlgoLens`, description: loc.lesson.summary, type: "article" },
   };
 }
 
 /**
- * Lesson reader (docs/05 §5.5). MDX is compiled server-side from repo content; only the
- * allowlisted components below are available to lessons — no raw HTML pipeline (rule 4/7).
+ * Lesson reader (docs/05 §5.5). MDX is compiled with @mdx-js/mdx `evaluate`, passing the
+ * PRODUCTION JSX runtime (`react/jsx-runtime`) and `development:false` explicitly — even under
+ * `next dev`. That sidesteps the next-mdx-remote × Next-15.5 `jsxDEV` mismatch so lessons render
+ * in dev and prod alike. Only the allowlisted components are available to lessons (rule 4); the
+ * source is repo-authored/trusted (ADR-0003).
  */
 export default async function LessonPage({ params }: { params: Promise<Params> }) {
   const { track, lesson } = await params;
@@ -44,19 +42,15 @@ export default async function LessonPage({ params }: { params: Promise<Params> }
   if (!loc) notFound();
 
   const source = readLessonSource(loc.lesson);
-
-  // Compile MDX to an already-resolved node here (server), then pass it as children. Passing the
-  // resolved content — rather than the async <MDXRemote/> element — into the client LessonShell
-  // avoids the next-mdx-remote × Next-15.5 dev-runtime crash. Components are allowlisted (rule 4).
-  const { content } = await compileMDX({
-    source,
-    components: { Viz, Quiz, Callout },
-    options: { mdxOptions: { remarkPlugins: [remarkGfm] } },
-  });
+  const { default: Content } = await evaluate(source, {
+    ...jsxRuntime,
+    development: false,
+    remarkPlugins: [remarkGfm],
+  } as Parameters<typeof evaluate>[1]);
 
   return (
     <LessonShell track={loc.track} lesson={loc.lesson} next={loc.next}>
-      {content}
+      <Content components={{ Viz, Quiz, Callout }} />
     </LessonShell>
   );
 }
