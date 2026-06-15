@@ -29,6 +29,13 @@ export function buildSeedRows(): NewVisualization[] {
 }
 
 async function main(): Promise<void> {
+  // tsx does not read .env itself; load the repo-root one (cwd is packages/db under pnpm --filter).
+  try {
+    const { resolve } = await import("node:path");
+    process.loadEnvFile(resolve(process.cwd(), "../../.env"));
+  } catch {
+    /* no .env file — fall back to the ambient environment */
+  }
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   const db = createDb(url);
