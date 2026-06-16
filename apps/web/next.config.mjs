@@ -1,3 +1,14 @@
+import { resolve } from "node:path";
+
+// Next only auto-loads apps/web/.env*, but this monorepo keeps secrets in the repo-root .env
+// (shared with the db tooling). Load it into process.env at server start so Auth.js and the DB
+// client see AUTH_*/DATABASE_URL. No-op on platforms (Vercel) that inject env vars and have no file.
+try {
+  process.loadEnvFile(resolve(process.cwd(), "../../.env"));
+} catch {
+  /* no root .env — use the ambient environment */
+}
+
 /**
  * Content-Security-Policy (TRD §7). `worker-src 'self' blob:` confines the exec/bench workers.
  * `script-src` keeps `'unsafe-eval'` BECAUSE the client-side sandbox workers (Complexity Lab,
@@ -40,6 +51,7 @@ const nextConfig = {
     "@algolens/content",
     "@algolens/retention",
     "@algolens/worker",
+    "@algolens/db",
   ],
   // Lint is run as its own Turborepo task; don't fail the build on it here.
   eslint: { ignoreDuringBuilds: true },
