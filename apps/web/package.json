@@ -9,7 +9,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check:mdx": "node scripts/check-mdx.mjs"
   },
   "dependencies": {
     "@algolens/algo-core": "workspace:*",

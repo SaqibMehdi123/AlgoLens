@@ -1,0 +1,96 @@
+# Merge Sort
+
+Merge sort is the first algorithm in this track that is provably optimal for comparison sorting:
+`O(n log n)` in the **worst** case, every time, no exceptions. It is also your gateway to *divide and
+conquer* — the most reusable problem-solving pattern in the toolkit. CLRS introduces it on page one
+of its algorithms chapter for exactly that reason.
+
+## Split to nothing, then merge back
+
+<Viz algo="merge-sort" frame={14} caption="The recursion splits the array down to single elements (trivially sorted), then merges sorted runs back upward." />
+
+The idea is two lines:
+
+- **Divide:** cut the array in half until each piece has one element (a one-element array is already
+  sorted).
+- **Conquer:** merge two sorted halves into one sorted whole by repeatedly taking the smaller front.
+
+The merge is where the work happens, and it is *linear*: walk both halves with two fingers, always
+copying the smaller front element.
+
+## The algorithm
+
+1. `sort(lo, hi)`: if the range has ≤ 1 element, return.
+2. `mid = ⌊(lo + hi) / 2⌋`; `sort(lo, mid)`; `sort(mid, hi)`.
+3. **Merge** `a[lo..mid)` and `a[mid..hi)`: compare the two fronts, append the smaller, until both
+   are consumed.
+
+<Callout kind="insight">
+  **Stable, if you break ties left.** When the two fronts are equal, take from the **left** half
+  (`a[i] ≤ a[j]`). That single `≤` keeps equal keys in their original order — the property that lets
+  you sort by one key without scrambling a previous sort. Merge sort is the default *stable* sort in
+  many standard libraries because of it.
+</Callout>
+
+<Callout kind="warning">
+  **It is not in place.** The merge needs `O(n)` scratch space. On memory-tight problems that is the
+  catch — quicksort sorts in place with only `O(log n)` stack. The classic trade is merge sort's
+  worst-case guarantee versus quicksort's smaller footprint.
+</Callout>
+
+## Complexity
+
+| Case | Time | Why |
+| --- | --- | --- |
+| Best | `O(n log n)` | log n levels of halving, O(n) merge per level |
+| Average | `O(n log n)` | the structure is input-independent |
+| Worst | `O(n log n)` | the guarantee — no pathological input |
+| Space | `O(n)` | scratch buffer for merging |
+
+Why `log n` levels? Halving `n` down to 1 takes `log₂ n` steps; each level merges a total of `n`
+elements. `n × log n` is the whole story, and it never degrades — the headline advantage over
+quicksort.
+
+## In interviews & contests
+
+- **Reach for it** when you need a **guaranteed** O(n log n), stability, or you're sorting a **linked
+  list** (merge sort needs no random access — it's the canonical list sort).
+- **Interviewers probe:** "Stable?" (yes), "In place?" (no, O(n) extra), and the merge step itself —
+  *Merge Two Sorted Lists* is the merge subroutine asked directly.
+- **Contest mapping:** the merge pattern powers **counting inversions** and is the structure behind
+  divide-and-conquer on ranges; `n log n` clears n ≈ 10⁶ within a second.
+
+<Quiz
+  id="ms-complexity"
+  type="complexity_pick"
+  prompt="What is the WORST-case time complexity of merge sort, and how does it compare to quicksort's worst case?"
+  options={["O(n²), same as quicksort", "O(n log n), better than quicksort's O(n²) worst case", "O(n log n), same worst case as quicksort", "O(n), it beats the comparison-sort bound"]}
+  answer={1}
+  explanation="Merge sort's split is purely positional (always the midpoint), so the recursion tree is balanced for ANY input: log n levels × O(n) work = O(n log n) guaranteed. Quicksort can degrade to O(n²) when pivots are unlucky. No comparison sort can beat O(n log n) (the decision-tree lower bound), so merge sort is asymptotically optimal. The price for the guarantee is O(n) extra space."
+  replay={{ algo: "merge-sort", frame: 30, label: "Watch every level do O(n) total merge work" }}
+/>
+
+<Quiz
+  id="ms-predict-merge"
+  type="predict_output"
+  prompt="Merge sort recurses to single elements, then merges. For [5, 3, 8, 4, 2, 7, 1, 6], what does the very first merge — the two leftmost leaves — produce?"
+  code={"[5,3,8,4,2,7,1,6]\nsplit … → [5] [3] (leftmost leaves)\nmerge [5] and [3] → ?"}
+  options={["[3, 5]", "[5, 3]", "[3, 4, 5, 8]", "[3, 5, 4, 8]"]}
+  answer={0}
+  explanation="The leftmost recursion bottoms out at single elements [5] and [3]. Merging compares the two fronts (5 vs 3), takes 3, then 5 → [3, 5]. Those merge upward: [3,5] then merges with the sorted [4,8] to make [3,4,5,8], and so on. Step the visualization through the first few merges to watch sorted runs grow from length 1 → 2 → 4 → 8."
+  replay={{ algo: "merge-sort", frame: 12, label: "Step to the first merge" }}
+/>
+
+## Summary
+
+- Divide to single elements, merge sorted halves with a two-finger linear scan.
+- `O(n log n)` in **all** cases; stable when ties break left; needs `O(n)` scratch space.
+- The merge subroutine is itself a common interview question and the engine of inversion counting.
+
+## Sources & further reading
+
+- CLRS, *Introduction to Algorithms* (4th ed.), §2.3 — designing algorithms by divide and conquer.
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §2.2 — mergesort, stability, and bottom-up merging.
+- Laaksonen, *Competitive Programmer's Handbook*, Ch. 3 — sorting and the O(n log n) lower bound.
+
+**Practice:** [Merge Two Sorted Arrays](/practice/merge-two-sorted) — implement the merge step at the heart of this algorithm.

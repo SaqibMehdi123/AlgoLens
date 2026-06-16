@@ -1,0 +1,94 @@
+# Linear Search
+
+Before you can earn the speed of binary search, you have to know what it beats. Linear search is
+the baseline every interviewer assumes you can write in your sleep: walk the array, return the
+first match. It makes **no assumptions** about the data — which is both its weakness and, sometimes,
+its superpower.
+
+## Walk until you hit it
+
+<Viz
+  algo="linear-search"
+  values={[4, 8, 15, 16, 23, 42, 56, 71]}
+  target={23}
+  frame={6}
+  caption="Each bar lights up as it is compared; the scan stops the instant the target is found."
+/>
+
+The algorithm is a single loop. Index `0`, index `1`, … compare each element to the target; the
+moment one matches, return its position. If the loop runs off the end, the target was not there.
+
+## The algorithm
+
+1. For `i` from `0` to `n − 1`:
+   - If `a[i]` equals the target, return `i`.
+2. Return `−1` — the loop finished without a match.
+
+<Callout kind="insight">
+  **Unsorted is fine.** Linear search is the only search that needs no preprocessing. On data you
+  will scan exactly once, sorting first (O(n log n)) just to enable binary search is a net loss —
+  the single scan is already O(n).
+</Callout>
+
+<Callout kind="warning">
+  **The sentinel trick.** Some solutions append the target as a sentinel at `a[n]` so the loop can
+  drop its bounds check (`while a[i] != target`). It shaves one comparison per iteration — a
+  micro-optimization, but a classic interview talking point (Knuth, *TAOCP* Vol. 3).
+</Callout>
+
+## Complexity
+
+| Case | Time | When |
+| --- | --- | --- |
+| Best | `O(1)` | target is the first element |
+| Average | `O(n)` | target is somewhere in the middle |
+| Worst | `O(n)` | target is last, or absent |
+| Space | `O(1)` | one index variable |
+
+The takeaway interviewers want: linear search is optimal when the data is **unsorted and traversed
+once**. The instant you search the same array repeatedly, preprocess it — sort for binary search,
+or build a hash set for O(1) lookups.
+
+## In interviews & contests
+
+- **Reach for it** when n is tiny, the array is unsorted and used once, or a hash set is overkill.
+  Don't apologize for O(n) when the input is genuinely unstructured.
+- **Interviewers probe:** "Can you do better?" → only with a precondition (sorted → binary search)
+  or extra space (hash set). Saying that trade-off out loud is the point.
+- **Contest mapping:** with n ≤ ~10⁶ and a single pass, O(n) clears a 1-second limit comfortably;
+  repeated queries push you to sort + binary search, or a frequency array.
+
+<Quiz
+  id="ls-complexity"
+  type="complexity_pick"
+  prompt="You must answer Q separate 'is x present?' queries against the SAME unsorted array of n items, using plain linear search each time. Total cost?"
+  options={["O(n)", "O(Q + n)", "O(Q · n)", "O(n log n)"]}
+  answer={2}
+  explanation="Each query is an independent O(n) scan and nothing is remembered between them, so Q queries cost O(Q · n). This is exactly the moment to preprocess: sort once (O(n log n)) then binary-search each query (O(log n)), or build a hash set once (O(n)) for O(1) lookups. Watch a single scan in the visualization, then multiply it by Q."
+  replay={{ algo: "linear-search", query: "v=4,8,15,16,23,42,56,71&target=99", frame: 16, label: "Replay a full scan that finds nothing (worst case)" }}
+/>
+
+<Quiz
+  id="ls-predict-count"
+  type="predict_output"
+  prompt="Searching for 23 in [4, 8, 15, 16, 23, 42, 56, 71] — how many elements does linear search compare before it returns?"
+  code={"i=0: a[0]=4  ≠ 23\ni=1: a[1]=8  ≠ 23\ni=2: a[2]=15 ≠ 23\ni=3: a[3]=16 ≠ 23\ni=4: a[4]=?  // ←"}
+  options={["4", "5", "6", "8"]}
+  answer={1}
+  explanation="23 sits at index 4, so the scan compares indices 0,1,2,3,4 — five elements — then returns. Binary search would find the same element in three comparisons on this sorted array; step both visualizations to feel the difference. Note linear search does NOT exploit the sorted order — it would take the same five steps on a shuffled array."
+  replay={{ algo: "linear-search", query: "v=4,8,15,16,23,42,56,71&target=23", frame: 10, label: "Count the probes for target 23" }}
+/>
+
+## Summary
+
+- Linear search scans front to back and returns the first match; no preconditions.
+- `O(n)` time, `O(1)` space — optimal for unsorted, single-pass searches.
+- Repeated queries are the signal to preprocess (sort + binary search, or a hash set).
+
+## Sources & further reading
+
+- CLRS, *Introduction to Algorithms* (4th ed.), §2.1 — linear search appears as Exercise 2.1-3.
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §1.4 — analysis of running time.
+- Knuth, *The Art of Computer Programming* Vol. 3, §6.1 — sequential search and the sentinel.
+
+**Practice:** [Find the Index](/practice/find-index) — implement linear search and handle the not-found case.

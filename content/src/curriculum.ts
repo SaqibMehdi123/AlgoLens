@@ -43,6 +43,23 @@ export const foundationsTrack: TrackMeta = {
       position: 2,
       lessons: [
         {
+          slug: "linear-search",
+          title: "Linear Search",
+          summary:
+            "The no-assumptions baseline: scan until you hit it. Know what binary search beats, and when O(n) is genuinely optimal.",
+          file: "linear-search.mdx",
+          estMinutes: 8,
+          difficulty: "intro",
+          position: 1,
+          quizCount: 2,
+          prerequisites: ["big-o-notation"],
+          practiceSlug: "find-index",
+          reviewCards: [
+            { front: "When is linear search the right choice?", back: "Unsorted data scanned **once** — no preprocessing, O(n) is optimal." },
+            { front: "Cost of Q queries on the same unsorted array via linear search?", back: "O(Q · n). Repeated queries → preprocess (sort + binary search, or a hash set)." },
+          ],
+        },
+        {
           slug: "binary-search",
           title: "Binary Search",
           summary:
@@ -50,9 +67,9 @@ export const foundationsTrack: TrackMeta = {
           file: "binary-search.mdx",
           estMinutes: 12,
           difficulty: "intro",
-          position: 1,
+          position: 2,
           quizCount: 2,
-          prerequisites: ["big-o-notation"],
+          prerequisites: ["big-o-notation", "linear-search"],
           practiceSlug: "binary-search-position",
           reviewCards: [
             { front: "Time complexity of binary search?", back: "O(log n) — each comparison halves the search window." },
@@ -62,9 +79,84 @@ export const foundationsTrack: TrackMeta = {
       ],
     },
     {
+      slug: "sorting",
+      title: "Sorting",
+      position: 3,
+      lessons: [
+        {
+          slug: "selection-sort",
+          title: "Selection Sort",
+          summary:
+            "Repeatedly select the minimum and place it — the clearest view of the sorted/unsorted boundary, and the fewest writes of any O(n²) sort.",
+          file: "selection-sort.mdx",
+          estMinutes: 9,
+          difficulty: "easy",
+          position: 1,
+          quizCount: 2,
+          prerequisites: ["big-o-notation"],
+          practiceSlug: "second-largest",
+          reviewCards: [
+            { front: "Best-case time of selection sort?", back: "Still **O(n²)** — no early exit; it scans the whole suffix every pass." },
+            { front: "How many swaps does selection sort make?", back: "At most n − 1 (one per pass) — the fewest writes of any O(n²) sort." },
+          ],
+        },
+        {
+          slug: "insertion-sort",
+          title: "Insertion Sort",
+          summary:
+            "Slide each element into a growing sorted prefix. Stable, online, and O(n) on nearly-sorted data — the sort hybrids fall back to.",
+          file: "insertion-sort.mdx",
+          estMinutes: 10,
+          difficulty: "easy",
+          position: 2,
+          quizCount: 2,
+          prerequisites: ["big-o-notation", "selection-sort"],
+          practiceSlug: "sort-colors",
+          reviewCards: [
+            { front: "Best-case time of insertion sort, and when?", back: "O(n) on already/nearly-sorted input — the inner loop barely runs. It's **adaptive**." },
+            { front: "Is insertion sort stable?", back: "Yes — it swaps only strict inversions (>, never ≥), preserving equal-key order." },
+          ],
+        },
+        {
+          slug: "merge-sort",
+          title: "Merge Sort",
+          summary:
+            "Divide and conquer: split to single elements, merge sorted halves. A guaranteed O(n log n), stable, and the canonical linked-list sort.",
+          file: "merge-sort.mdx",
+          estMinutes: 12,
+          difficulty: "easy",
+          position: 3,
+          quizCount: 2,
+          prerequisites: ["big-o-notation", "insertion-sort"],
+          practiceSlug: "merge-two-sorted",
+          reviewCards: [
+            { front: "Worst-case time of merge sort?", back: "O(n log n) — guaranteed for any input (balanced positional split)." },
+            { front: "Merge sort: in place? stable?", back: "Not in place (O(n) scratch); stable when ties break toward the left half." },
+          ],
+        },
+        {
+          slug: "quick-sort",
+          title: "Quick Sort",
+          summary:
+            "Partition around a pivot — fast and in place in practice, O(n²) on bad pivots. The basis of quickselect and the world's default sort.",
+          file: "quick-sort.mdx",
+          estMinutes: 13,
+          difficulty: "medium",
+          position: 4,
+          quizCount: 2,
+          prerequisites: ["big-o-notation", "merge-sort"],
+          practiceSlug: "kth-largest",
+          reviewCards: [
+            { front: "Quicksort worst case, and its trigger?", back: "O(n²) when pivots are always min/max (e.g., sorted input + last-element pivot). Randomize the pivot." },
+            { front: "What does one partition guarantee?", back: "The pivot reaches its **final** sorted position; smaller left, larger right (sides not yet sorted)." },
+          ],
+        },
+      ],
+    },
+    {
       slug: "graphs-intro",
       title: "Graph Traversal",
-      position: 3,
+      position: 4,
       lessons: [
         {
           slug: "breadth-first-search",
@@ -81,6 +173,23 @@ export const foundationsTrack: TrackMeta = {
           reviewCards: [
             { front: "Which data structure drives BFS, and why?", back: "A **queue** (FIFO) — it produces the ring-by-ring order, so nearer nodes finish first." },
             { front: "Time complexity of BFS on V nodes, E edges?", back: "O(V + E) — each node enqueued once, each edge examined once." },
+          ],
+        },
+        {
+          slug: "depth-first-search",
+          title: "Depth-First Search",
+          summary:
+            "Dive deep and backtrack with a stack — the engine behind cycle detection, topological sort, and connected components.",
+          file: "depth-first-search.mdx",
+          estMinutes: 12,
+          difficulty: "easy",
+          position: 2,
+          quizCount: 2,
+          prerequisites: ["big-o-notation", "breadth-first-search"],
+          practiceSlug: null,
+          reviewCards: [
+            { front: "Which structure drives DFS, and what does it give you?", back: "A **stack** (often recursion). The active stack = the current root→node path." },
+            { front: "Can DFS find shortest paths in an unweighted graph?", back: "No — use **BFS** for that. DFS is for cycles, topo-sort, components, reachability." },
           ],
         },
       ],

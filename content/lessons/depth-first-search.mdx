@@ -1,0 +1,91 @@
+# Depth-First Search
+
+If BFS explores in cautious rings, DFS has the opposite temperament: it commits to a path and follows
+it as deep as possible, backing up only when it hits a dead end. That single difference — **dive
+instead of fan out** — makes DFS the engine behind cycle detection, topological sorting, connected
+components, and maze solving.
+
+## Dive, then backtrack
+
+<Viz algo="dfs" frame={8} caption="DFS plunges down one branch (violet = finished) and backtracks only when a node has no unvisited neighbors." />
+
+DFS picks a neighbor, recurses into it immediately, and keeps going until it reaches a node whose
+neighbors are all already visited. Then it **backtracks** to the most recent node that still has an
+unexplored option. The call stack *is* the algorithm — each recursive call remembers where to return.
+
+## The algorithm
+
+1. `dfs(u)`: mark `u` visited.
+2. For each neighbor `w` of `u`: if `w` is not visited, `dfs(w)`.
+3. Return — control backtracks to `u`'s caller.
+
+The only difference from BFS is the data structure: BFS uses a **queue** (FIFO); DFS uses a **stack**
+— explicitly, or implicitly via recursion.
+
+<Callout kind="warning">
+  **Mark on entry, or you loop forever.** Mark `u` visited at the *start* of the call, before
+  recursing. Skip that and a cycle sends DFS into infinite recursion. On deep graphs the recursion
+  can also overflow the call stack — rewrite it with an explicit stack when depth can reach ~10⁵
+  (a common contest constraint).
+</Callout>
+
+<Callout kind="insight">
+  **The stack remembers the path.** At any moment the active call stack holds the exact route from
+  the start node to the current one. That's why DFS gives you path existence and cycle detection
+  almost for free — a "back edge" to a node already on the stack *is* a cycle.
+</Callout>
+
+## Complexity
+
+| Aspect | Cost | Why |
+| --- | --- | --- |
+| Time | `O(V + E)` | each node visited once, each edge examined once |
+| Space | `O(V)` | visited set + recursion/stack depth |
+
+Identical asymptotics to BFS — they examine the same nodes and edges, just in a different order. You
+choose between them by *what order you need*, not by speed.
+
+## In interviews & contests
+
+- **Reach for it** for connectivity, cycle detection, **topological sort**, flood fill, and "does a
+  path exist?" When the question is *shortest* path in an unweighted graph, use BFS instead — DFS
+  does not find shortest paths.
+- **Interviewers probe:** recursive vs iterative DFS, stack-overflow risk on deep graphs, and the
+  edge types (tree / back / cross) used to classify graph structure.
+- **Contest mapping:** `O(V + E)` handles V, E ≈ 10⁵–10⁶ within a second. For deep recursion, convert
+  to an explicit stack or raise the recursion limit.
+
+<Quiz
+  id="dfs-complexity"
+  type="complexity_pick"
+  prompt="On a graph with V nodes and E edges (adjacency-list representation), what does a full DFS cost?"
+  options={["O(V²)", "O(V + E)", "O(E log V)", "O(V · E)"]}
+  answer={1}
+  explanation="Each node is entered exactly once (the visited check prevents re-entry), and from each node DFS walks its adjacency list once — summed over all nodes, that's every edge examined once (twice for undirected). Total: O(V + E), identical to BFS. Representation matters: an adjacency MATRIX would force O(V²) just to find neighbors. Watch the trace — each edge lights up once as it's checked."
+  replay={{ algo: "dfs", frame: 18, label: "Watch each edge get examined once" }}
+/>
+
+<Quiz
+  id="dfs-predict-order"
+  type="predict_output"
+  prompt="DFS from A on the lesson's graph (edges A–B, A–C, B–D, B–E, C–E, C–F, E–G, F–G), taking neighbors in alphabetical order. In what order are nodes first visited?"
+  code={"dfs(A) → first unvisited neighbor …\nfollow it all the way down before trying the next"}
+  options={["A, B, D, E, C, F, G", "A, B, C, D, E, F, G", "A, B, C, E, D, F, G", "A, C, F, G, E, B, D"]}
+  answer={0}
+  explanation="From A, dive into B; from B, dive into D (dead end, backtrack) then E; from E, dive into C; from C, dive into F; from F, reach G. Order: A, B, D, E, C, F, G. Contrast with BFS on the same graph — A, B, C, D, E, F, G — which finishes A's neighbors (B, C) before going deeper. Same graph, stack vs queue, completely different order. Open both in the playground and step them together."
+  replay={{ algo: "dfs", frame: 10, label: "Step through the dive-and-backtrack order" }}
+/>
+
+## Summary
+
+- DFS dives along one path and backtracks at dead ends; the stack (or recursion) holds the route.
+- `O(V + E)` time, `O(V)` space — same cost as BFS, different visit order.
+- The tool for cycles, topological sort, components, and path existence — but **not** shortest paths.
+
+## Sources & further reading
+
+- CLRS, *Introduction to Algorithms*, §22.3 — depth-first search, edge classification, and topological sort.
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §4.1–4.2 — undirected and directed graph search.
+- Laaksonen, *Competitive Programmer's Handbook*, Ch. 12; cp-algorithms.com, *Depth First Search* (CC BY-SA 4.0).
+
+**Compare:** [Breadth-First Search](/learn/dsa-foundations/breadth-first-search) — the same graph explored in rings instead of dives.

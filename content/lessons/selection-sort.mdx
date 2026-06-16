@@ -1,0 +1,91 @@
+# Selection Sort
+
+Selection sort is how most people sort a hand of cards without thinking about it: find the smallest
+card, put it first, then find the smallest of what's left, and repeat. It is rarely the right choice
+in production — but it is the cleanest way to *see* what "sorted" means, and it sets up every better
+sort by showing exactly what they improve on.
+
+## Find the minimum, place it, repeat
+
+<Viz algo="selection-sort" frame={10} caption="Amber bars are the current scan for the minimum; mint bars are locked in their final sorted position." />
+
+The array splits into two regions: a sorted prefix on the left (growing) and an unsorted suffix on
+the right (shrinking). Each pass scans the suffix for its minimum and swaps it to the front of the
+suffix — extending the sorted region by one.
+
+## The algorithm
+
+1. For `i` from `0` to `n − 2`:
+   - Let `min = i`.
+   - For `j` from `i + 1` to `n − 1`: if `a[j] < a[min]`, set `min = j`.
+   - Swap `a[i]` and `a[min]`.
+2. After pass `i`, `a[0..i]` holds the `i + 1` smallest elements, sorted.
+
+<Callout kind="insight">
+  **Exactly n − 1 swaps.** Selection sort writes to the array at most once per pass — fewer writes
+  than any other O(n²) sort. On hardware where a *write* costs far more than a *read* (e.g., flash
+  memory), that property occasionally makes it the right tool.
+</Callout>
+
+<Callout kind="warning">
+  **The comparisons never shrink.** Even on an already-sorted array, selection sort scans the entire
+  suffix every pass — so it is O(n²) in the *best* case too. It is also **not stable**: the
+  long-distance swap can reorder equal keys. Insertion sort fixes both of these.
+</Callout>
+
+## Complexity
+
+| Case | Time | Why |
+| --- | --- | --- |
+| Best | `O(n²)` | the inner scan runs fully regardless of order |
+| Average | `O(n²)` | about n²/2 comparisons |
+| Worst | `O(n²)` | same scan, every pass |
+| Space | `O(1)` | sorts in place |
+| Swaps | `O(n)` | at most one per pass |
+
+The n²/2 comparisons come from summing the shrinking inner loop: (n−1) + (n−2) + … + 1 = n(n−1)/2.
+That arithmetic series is the fingerprint of every quadratic sort.
+
+## In interviews & contests
+
+- **Reach for it** almost never for speed — but name it when asked for the sort with the **fewest
+  writes**, or to demonstrate the sorted/unsorted-region invariant cleanly.
+- **Interviewers probe:** "Is it stable?" (no) and "Best case?" (still O(n²) — the fact that
+  separates it from insertion sort).
+- **Contest mapping:** any O(n²) sort handles n ≲ 10⁴; beyond that you need an O(n log n) sort (or
+  the library built-in). In real contests you call the built-in — selection sort is a teaching tool.
+
+<Quiz
+  id="ss-complexity"
+  type="complexity_pick"
+  prompt="The array is ALREADY sorted. How many comparisons does selection sort make?"
+  options={["O(1)", "O(n)", "O(n log n)", "O(n²)"]}
+  answer={3}
+  explanation="Selection sort has no early exit: every pass scans the whole unsorted suffix to be sure it found the minimum, even when the data is sorted. So it makes the same n(n−1)/2 comparisons regardless of input — O(n²) best, average, and worst. This is its key weakness versus insertion sort, which finishes a sorted array in O(n). Scrub the visualization: the inner scan never shortens."
+  replay={{ algo: "selection-sort", frame: 20, label: "Watch the inner scan run fully every pass" }}
+/>
+
+<Quiz
+  id="ss-predict-pass"
+  type="predict_output"
+  prompt="One pass of selection sort on [5, 3, 8, 4, 2, 7, 1, 6]. What is the array after the FIRST swap?"
+  code={"scan [5,3,8,4,2,7,1,6] for the minimum\nsmallest value = ?  at index ?\nswap it with index 0"}
+  options={["[1, 3, 8, 4, 2, 7, 5, 6]", "[3, 5, 8, 4, 2, 7, 1, 6]", "[1, 2, 3, 4, 5, 6, 7, 8]", "[2, 3, 8, 4, 5, 7, 1, 6]"]}
+  answer={0}
+  explanation="The minimum of the whole array is 1, at index 6. Pass 1 swaps it with index 0 (value 5), giving [1, 3, 8, 4, 2, 7, 5, 6] — only those two positions change. Notice 5 jumped past smaller-or-equal values already behind it; that long-distance move is exactly why selection sort is not stable. Step the player one pass to confirm."
+  replay={{ algo: "selection-sort", frame: 12, label: "Step through the first pass" }}
+/>
+
+## Summary
+
+- Two regions — sorted prefix, unsorted suffix; each pass moves one minimum across the boundary.
+- `O(n²)` comparisons in **every** case (no early exit), `O(1)` space, only `O(n)` swaps.
+- Not stable; best case is still quadratic — both reasons to prefer insertion sort on small inputs.
+
+## Sources & further reading
+
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §2.1 — elementary sorts (selection & insertion).
+- CLRS, *Introduction to Algorithms* (4th ed.), Exercise 2.2-2 — selection sort and its loop invariant.
+- Laaksonen, *Competitive Programmer's Handbook*, Ch. 3 — sorting theory and the comparison lower bound.
+
+**Practice:** [Second Largest](/practice/second-largest) — the selection idea, stopped after the top elements.

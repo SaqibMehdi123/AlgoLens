@@ -1,0 +1,92 @@
+# Quick Sort
+
+Quicksort is the sort the world actually runs — the default inside countless standard libraries —
+because in practice it is fast, in place, and cache-friendly. The twist: its worst case is `O(n²)`,
+and the gap between "usually great" and "occasionally terrible" is entirely about how you pick the
+**pivot**. Understanding that gap is the interview.
+
+## Partition around a pivot
+
+<Viz algo="quick-sort" frame={8} caption="The coral bar is the pivot; the scan pushes everything smaller to its left, then drops the pivot into the gap — its final position." />
+
+One pass, called **partition**, does the real work: choose a pivot, then rearrange so everything
+smaller is to its left and everything larger to its right. The pivot is now in its **final** sorted
+position. Recurse on the two sides — there is no merge step.
+
+## The algorithm (Lomuto partition)
+
+1. `quicksort(lo, hi)`: if `lo ≥ hi`, return.
+2. `pivot = a[hi]` (the last element); `i = lo − 1`.
+3. For `j` from `lo` to `hi − 1`: if `a[j] < pivot`, increment `i` and swap `a[i]` with `a[j]`.
+4. Swap `a[i + 1]` with `a[hi]` — the pivot lands at index `i + 1`.
+5. Recurse on `a[lo .. i]` and `a[i + 2 .. hi]`.
+
+<Callout kind="warning">
+  **The sorted-input trap.** With a fixed last-element pivot, an already-sorted (or reverse-sorted)
+  array makes every partition maximally lopsided — one side empty — and the recursion becomes
+  `O(n²)`. This is a real interview "gotcha." Fix it with a **random** pivot or **median-of-three**,
+  which make the bad case astronomically unlikely (CLRS §7.3, randomized quicksort).
+</Callout>
+
+<Callout kind="insight">
+  **In place, and the basis of quickselect.** Quicksort needs only `O(log n)` stack space — no
+  scratch array. Stop the recursion the moment the pivot lands on the rank you want and you get
+  **quickselect**: the kth-smallest element in expected `O(n)`.
+</Callout>
+
+## Complexity
+
+| Case | Time | When |
+| --- | --- | --- |
+| Best | `O(n log n)` | pivot splits the range evenly |
+| Average | `O(n log n)` | random or typical pivots |
+| Worst | `O(n²)` | every pivot is the min or max |
+| Space | `O(log n)` | recursion stack (in place otherwise) |
+
+Quicksort is **not stable** (the partition swaps move equal keys past each other). Its average
+constant factor is smaller than merge sort's, which is why it usually wins wall-clock races despite
+the scarier worst case.
+
+## In interviews & contests
+
+- **Reach for it** when you want an in-place O(n log n) and stability doesn't matter — or when the
+  real question is **selection** (kth-largest → quickselect).
+- **Interviewers probe:** the worst case and how to avoid it (random pivot), stability (no), and
+  Lomuto vs **Hoare** partition (Hoare does fewer swaps).
+- **Contest mapping:** you'll usually call the library sort — *introsort*: quicksort that falls back
+  to heapsort to dodge O(n²). Knowing partition still matters for quickselect and Dutch-flag problems.
+
+<Quiz
+  id="qs-complexity"
+  type="complexity_pick"
+  prompt="Using a fixed last-element pivot, what is quicksort's time complexity on an array that is ALREADY sorted?"
+  options={["O(n)", "O(n log n)", "O(n²)", "O(log n)"]}
+  answer={2}
+  explanation="A sorted array with a last-element pivot partitions into one side of size n−1 and one empty side — the maximally unbalanced split — at every level. That's n + (n−1) + … + 1 = O(n²). It is the canonical quicksort failure mode, and exactly why production implementations randomize the pivot or use median-of-three. Counter-intuitively, sorted input is the WORST input here."
+  replay={{ algo: "quick-sort", frame: 40, label: "Compare balanced vs lopsided partitions" }}
+/>
+
+<Quiz
+  id="qs-predict-partition"
+  type="predict_output"
+  prompt="One Lomuto partition of [5, 3, 8, 4, 2, 7, 1, 6] with pivot = last element (6). What is the array immediately after the pivot is placed?"
+  code={"pivot = 6 (index 7)\nscan j=0..6, pack values < 6 to the left\nfinally swap the pivot into the gap → ?"}
+  options={["[5, 3, 4, 2, 1, 6, 8, 7]", "[1, 2, 3, 4, 5, 6, 7, 8]", "[3, 5, 4, 2, 1, 6, 7, 8]", "[5, 3, 8, 4, 2, 7, 1, 6]"]}
+  answer={0}
+  explanation="Scanning left to right, the values < 6 (5, 3, 4, 2, 1) are packed to the front in encountered order, then the pivot 6 is swapped into the next slot (index 5): [5, 3, 4, 2, 1, 6, 8, 7]. Everything left of 6 is smaller, everything right is larger, and 6 is now in its final position — but the two sides are NOT internally sorted yet. Step the visualization through the single partition to watch i and j move."
+  replay={{ algo: "quick-sort", frame: 14, label: "Step through the first partition" }}
+/>
+
+## Summary
+
+- Partition places the pivot in its final spot; recurse on each side — no merge.
+- Average `O(n log n)`, in place with `O(log n)` stack; **worst `O(n²)`** on bad pivots — randomize.
+- Not stable; the partition routine also gives you quickselect (kth element in expected O(n)).
+
+## Sources & further reading
+
+- CLRS, *Introduction to Algorithms* (4th ed.), Ch. 7 — quicksort and §7.3 randomized quicksort.
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §2.3 — quicksort, 3-way partitioning, and quickselect.
+- cp-algorithms.com — *Sorting* and the `nth_element`/median selection technique (CC BY-SA 4.0).
+
+**Practice:** [Kth Largest Element](/practice/kth-largest) — stop quicksort early (quickselect) instead of fully sorting.

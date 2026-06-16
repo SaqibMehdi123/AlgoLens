@@ -1,0 +1,90 @@
+# Insertion Sort
+
+Insertion sort is how you sort a hand of playing cards: pick up one card at a time and slide it left
+until it sits in the right place among the cards you've already sorted. It is `O(n²)` like selection
+sort — but with two superpowers that make it the sort production code actually reaches for on small
+or nearly-sorted inputs.
+
+## Slide each element into place
+
+<Viz algo="insertion-sort" frame={12} caption="The active element (amber) slides left past everything larger than it; the mint prefix stays sorted at every step." />
+
+Maintain a sorted prefix on the left. Take the next element and swap it leftward, one adjacent step
+at a time, until the element to its left is no longer larger. The prefix is sorted after *every*
+insertion — that running invariant is what makes the algorithm easy to reason about.
+
+## The algorithm
+
+1. For `i` from `1` to `n − 1` (the prefix `a[0]` is trivially sorted):
+   - Let `j = i`.
+   - While `j > 0` and `a[j − 1] > a[j]`: swap them and decrement `j`.
+2. Each pass grows the sorted prefix by one.
+
+<Callout kind="insight">
+  **Adaptive: O(n) on nearly-sorted data.** If each element is close to its final spot, the inner
+  `while` barely runs — on an already-sorted array it does *one* comparison per element and zero
+  swaps, so the whole sort is `O(n)`. This is why hybrid sorts (Timsort, introsort) switch to
+  insertion sort for small or almost-sorted runs.
+</Callout>
+
+<Callout kind="warning">
+  **Online and stable — don't break it.** Insertion sort can sort data as it arrives (it doesn't
+  need the whole array up front), and it is **stable** because it only swaps strict inversions
+  (`>`, never `≥`). Changing that `>` to `≥` destroys stability for no benefit.
+</Callout>
+
+## Complexity
+
+| Case | Time | When |
+| --- | --- | --- |
+| Best | `O(n)` | already sorted — one compare per element |
+| Average | `O(n²)` | about n²/4 swaps |
+| Worst | `O(n²)` | reverse-sorted — every element slides to the front |
+| Space | `O(1)` | sorts in place |
+
+The best case is the headline. Unlike selection sort — `O(n²)` even on sorted input — insertion sort
+*rewards* pre-existing order, degrading gracefully from `O(n)` toward `O(n²)` as disorder increases.
+
+## In interviews & contests
+
+- **Reach for it** for small arrays (n ≲ 16), nearly-sorted data, or streaming input. It is the
+  small-array base case *inside* quicksort and mergesort implementations.
+- **Interviewers probe:** "When does an O(n²) sort beat an O(n log n) one?" — small or nearly-sorted
+  n, where insertion sort's tiny constant and best-case O(n) win. Also: stable? (yes); adaptive? (yes).
+- **Contest mapping:** rarely your main sort, but its invariant ("prefix always sorted") is the
+  mental model behind inserting into sorted structures and patience-sorting ideas.
+
+<Quiz
+  id="is-complexity"
+  type="complexity_pick"
+  prompt="What is insertion sort's time complexity on an array that is already sorted — and why does it matter versus selection sort?"
+  options={["O(n²), same as selection sort", "O(n log n)", "O(n), because the inner loop never swaps", "O(1)"]}
+  answer={2}
+  explanation="On sorted input the test a[j−1] > a[j] is false immediately for every i, so the inner while loop does exactly one comparison and zero swaps per element: O(n) total. Selection sort, by contrast, still scans the whole suffix every pass — O(n²) even when sorted. This adaptivity is precisely why real-world hybrid sorts fall back to insertion sort on nearly-ordered data."
+  replay={{ algo: "insertion-sort", frame: 4, label: "Step a nearly-sorted run and watch the while loop skip" }}
+/>
+
+<Quiz
+  id="is-predict-swaps"
+  type="predict_output"
+  prompt="Insertion sort on [5, 3, 8, 4, 2, 7, 1, 6]. By the time i reaches index 3, the prefix is [3, 5, 8 | 4, …]. How many adjacent swaps insert the 4 into the sorted prefix?"
+  code={"prefix sorted: [3, 5, 8] , next = 4\n4 vs 8 → swap   [3, 5, 4, 8]\n4 vs 5 → swap   [3, 4, 5, 8]\n4 vs 3 → stop"}
+  options={["1", "2", "3", "0"]}
+  answer={1}
+  explanation="The 4 slides left past 8 (swap 1) and past 5 (swap 2), then meets 3, which is not larger, so it stops: 2 swaps, leaving [3, 4, 5, 8]. Each swap fixes exactly one inversion — the total swap count of insertion sort equals the number of inversions in the array, which is why nearly-sorted input (few inversions) is so cheap. Step the visualization to count the slides."
+  replay={{ algo: "insertion-sort", frame: 14, label: "Step through inserting the 4" }}
+/>
+
+## Summary
+
+- Grow a sorted prefix; slide each new element left past larger ones (one swap per inversion).
+- Best case `O(n)` on sorted/nearly-sorted data, `O(n²)` average and worst, `O(1)` space.
+- Stable, online, and adaptive — the reasons hybrid sorts use it for small runs.
+
+## Sources & further reading
+
+- CLRS, *Introduction to Algorithms* (4th ed.), §2.1 — insertion sort and loop invariants (the book's first algorithm).
+- Sedgewick & Wayne, *Algorithms* (4th ed.), §2.1 — elementary sorts; adaptivity and stability.
+- McDowell, *Cracking the Coding Interview* — "Sorting and Searching" chapter on choosing a sort.
+
+**Practice:** [Sort Colors](/practice/sort-colors) — an in-place small-range sort where simple methods shine.
