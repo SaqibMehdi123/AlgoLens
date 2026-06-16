@@ -12,7 +12,8 @@ Tracks progress against the implementation roadmap (private planning docs).
 - ✅ `packages/db`: Drizzle schema for identity + curriculum + visualize domains; drizzle-kit config; seed.
 - ✅ `packages/api-contracts`: Zod schemas (problem+json, pagination, visualize configs).
 - ✅ `/api/v1/health` route; `infra/docker-compose.dev.yml` (postgres + redis); GitHub Actions CI.
-- ⛔️ Not yet: Auth.js wiring, Sentry/PostHog init, Neon/Vercel deploy, role middleware.
+- ✅ Auth.js v5 wired (GitHub + Google, JWT sessions, custom adapter) — see the dated section below.
+- ⛔️ Not yet: Sentry/PostHog init, Neon/Vercel deploy, role-gated middleware, durable persistence.
 
 ### Phase 1 — Visualization engine (the heart) — complete
 
@@ -35,9 +36,10 @@ Tracks progress against the implementation roadmap (private planning docs).
   `<Viz/>` (embedded mini-player, opens at a meaningful frame, "open in playground" link),
   `<Quiz/>` (complexity_pick / predict_output, wrong answer → **replay-at-step deep link** —
   the docs/04 journey-2 signature move), `<Callout/>` (Insight/Warning/Try-it).
-- ✅ `@algolens/content`: typed curriculum manifest + 3 exemplar lessons (Big-O, Binary Search,
-  BFS) locking the template; invariant tests (quizCount matches MDX, algos registered, no raw
-  script/iframe, sub-1200-word budget, prerequisite integrity).
+- ✅ `@algolens/content`: typed curriculum manifest + **9 lessons** (Big-O; Linear & Binary Search;
+  Selection/Insertion/Merge/Quick sort; BFS & DFS) following the locked template; invariant tests
+  (quizCount matches MDX, algos registered, no raw script/iframe, sub-1200-word budget, prerequisite
+  integrity). See the dated content section below.
 - ✅ Lesson reader (docs/05 §5.5): 68ch prose column, sticky scroll-progress bar, track outline
   with completion ticks, completion = scroll ≥ 90% + all quizzes passed → +XP completion card,
   next-lesson CTA. `/learn` catalog + track overview with prerequisite locks.
@@ -161,6 +163,27 @@ Tracks progress against the implementation roadmap (private planning docs).
   `development:false` explicitly, so dev uses `jsx` (not `jsxDEV`). next-mdx-remote was removed
   entirely (practice statements use `react-markdown`), which also dropped its audit advisories.
 
+### Database live + Auth.js + content sprint (2026-06-16)
+
+- ✅ **Postgres + Redis up** (docker compose) and the schema **migrated + seeded** against a real DB:
+  initial migration `0000` generated, with `CREATE EXTENSION pgcrypto/citext` prepended (needed by
+  `gen_random_uuid()` + `citext` columns) before first apply. 22 tables created; 12 visualizations
+  seeded. `drizzle.config.ts` + `seed.ts` now auto-load the repo-root `.env` via Node 22
+  `process.loadEnvFile`, so `db:migrate`/`db:seed` work with no manual exports (no-op in CI/deploy).
+- ✅ **Auth.js v5 (GitHub + Google)** — `next-auth@5` with a **custom Drizzle adapter** mapping onto
+  our bespoke `citext` `users`/`auth_accounts` schema (the stock `@auth/drizzle-adapter` shape
+  doesn't fit) and **JWT sessions** carrying `id` + `role` (**ADR-0006**). Adds
+  `/api/auth/[...nextauth]`, a `/login` page (server-action `signIn`/`signOut`, providers gated on
+  env), and session/JWT/AdapterUser type augmentation. `next.config.mjs` loads the repo-root `.env`
+  so the Next server sees `AUTH_*`/`DATABASE_URL` and transpiles `@algolens/db`. **Verified:**
+  apps/web typecheck clean; `/api/auth/providers` → github+google with correct callback URLs;
+  `/login` renders both buttons (200). Browser OAuth consent is the only user-side step left.
+- ✅ **+6 lessons** (Linear/Selection/Insertion/Merge/Quick sort, DFS) → DSA Foundations is now **9
+  lessons** across Complexity / Searching / **Sorting** (new module) / Graph Traversal. Each adds an
+  "In interviews & contests" section and cited "Sources & further reading" (CLRS, Sedgewick & Wayne,
+  Competitive Programmer's Handbook, cp-algorithms, CTCI); predict_output quizzes use engine-faithful
+  traces. New `apps/web check:mdx` compiles every lesson through the production MDX pipeline (9/9 ok).
+
 ## Next (post-launch backlog)
 
 - **Polish:** Playwright e2e (PRD stories #1–#5), axe-core CI, Canvas renderer >300 elements,
@@ -174,4 +197,5 @@ See [adr/](./adr) for decisions: [0001-stack](./adr/0001-stack.md),
 [0002-step-vocabulary](./adr/0002-step-vocabulary.md),
 [0003-client-side-progress](./adr/0003-client-side-progress.md),
 [0004-direct-judge-in-memory-submissions](./adr/0004-direct-judge-in-memory-submissions.md),
-[0005-retention-domain-package](./adr/0005-retention-domain-package.md).
+[0005-retention-domain-package](./adr/0005-retention-domain-package.md),
+[0006-jwt-sessions-custom-adapter](./adr/0006-jwt-sessions-custom-adapter.md).
