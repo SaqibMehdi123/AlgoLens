@@ -4,7 +4,9 @@ import { cn } from "@algolens/ui";
 import { Activity, BookOpen, Brain, FlaskConical, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { statsSnapshot } from "@/lib/retention";
+import { UserMenu } from "./auth/user-menu";
 import { useRetention } from "./retention/widgets";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -18,6 +20,7 @@ const pillars = [
 export function SiteNav() {
   const pathname = usePathname();
   const dueCount = statsSnapshot(useRetention()).dueCount;
+  const { data: session, status } = useSession();
   return (
     <header className="sticky top-0 z-40 border-b border-subtle bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-1 px-4 sm:px-6">
@@ -66,12 +69,36 @@ export function SiteNav() {
             )}
           </Link>
           <ThemeToggle />
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            Sign in
-          </Link>
+
+          {status === "loading" ? (
+            <div className="h-8 w-20 animate-pulse rounded-lg bg-raised" aria-hidden />
+          ) : session?.user ? (
+            <UserMenu
+              name={session.user.name}
+              email={session.user.email}
+              image={session.user.image}
+            />
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <Link
+                href="/login"
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  pathname === "/login"
+                    ? "bg-raised text-foreground"
+                    : "text-secondary hover:bg-raised hover:text-foreground",
+                )}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              >
+                Get started
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -22,7 +22,8 @@ const csp = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "img-src 'self' data: blob:",
+  // OAuth avatar CDNs (GitHub / Google) so signed-in users' profile pictures load.
+  "img-src 'self' data: blob: https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
   "font-src 'self' https://fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",

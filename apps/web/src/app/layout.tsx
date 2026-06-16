@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Providers } from "@/components/providers";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="min-h-dvh font-sans">
-        <SiteNav />
+        <Providers>
+          <SiteNav />
+        </Providers>
         <main className="mx-auto w-full max-w-[1280px] px-4 sm:px-6">{children}</main>
       </body>
     </html>

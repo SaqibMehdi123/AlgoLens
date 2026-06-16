@@ -1,98 +1,62 @@
-"use client";
+import { Button } from "@algolens/ui";
+import { LogOut } from "lucide-react";
+import { redirect } from "next/navigation";
+import { auth, signOut } from "@/auth";
+import { DashboardStats } from "@/components/dashboard/dashboard-stats";
 
-import { foundationsTrack } from "@algolens/content";
-import { Activity, BookOpen, FlaskConical, Play, User } from "lucide-react";
-import Link from "next/link";
-import { useTrackStats } from "@/components/learn/track-progress";
-import {
-  ActivityHeatmap,
-  DueReviews,
-  StreakFlame,
-  useRetention,
-  XpRing,
-} from "@/components/retention/widgets";
+export const metadata = { title: "Dashboard" };
 
-const quickLinks = [
-  { href: "/visualize/merge-sort", label: "Merge Sort playground", icon: Play },
-  { href: "/analyze", label: "Complexity Lab", icon: Activity },
-  { href: "/practice", label: "Practice problems", icon: FlaskConical },
-];
+/** Dashboard (docs/05 §5.2). Gated: signed-out visitors are sent to /login. The profile header is
+ * server-rendered from the session; progress widgets below are device-local (ADR-0003/0005). */
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
-/** Dashboard (docs/05 §5.2). All stats are device-local until accounts ship (ADR-0003/0005). */
-export default function DashboardPage() {
-  const { total, done, nextLesson } = useTrackStats(foundationsTrack);
-  const state = useRetention();
-  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  const u = session.user;
+  const label = u.name || u.email || "there";
+  const initial = (label.trim().charAt(0) || "?").toUpperCase();
 
   return (
     <div className="py-10">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-6">
-          <StreakFlame state={state} />
-          <XpRing state={state} />
+      <header className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-subtle bg-surface p-6">
+        <div className="flex items-center gap-4">
+          <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-subtle bg-raised">
+            {u.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={u.image} alt="" className="size-full object-cover" />
+            ) : (
+              <span className="text-xl font-semibold text-foreground">{initial}</span>
+            )}
+          </div>
+          <div>
+            <p className="text-sm text-muted">Welcome back,</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {u.name || u.email}
+            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-secondary">
+              {u.email && <span>{u.email}</span>}
+              {u.role && u.role !== "learner" && (
+                <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-muted">
+                  {u.role}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
+        <form
+          action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/" });
+          }}
+        >
+          <Button type="submit" variant="secondary">
+            <LogOut className="size-4" />
+            Sign out
+          </Button>
+        </form>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted">
-            <BookOpen className="size-4" aria-hidden />
-            Continue learning
-          </h2>
-          <p className="mt-3 text-lg font-semibold text-foreground">{foundationsTrack.title}</p>
-          <p className="mt-1 text-sm text-secondary">{done}/{total} lessons complete</p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden>
-            <div className="h-full bg-sorted transition-[width]" style={{ width: `${pct}%` }} />
-          </div>
-          {nextLesson && (
-            <Link
-              href={`/learn/${foundationsTrack.slug}/${nextLesson.slug}`}
-              className="mt-5 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {done === 0 ? "Start" : "Continue"}: {nextLesson.title} →
-            </Link>
-          )}
-        </section>
-
-        <DueReviews state={state} />
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <ActivityHeatmap state={state} />
-        </section>
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">Jump back in</h2>
-          <ul className="flex flex-col gap-2">
-            {quickLinks.map(({ href, label, icon: Icon }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="flex items-center gap-2 rounded-lg border border-subtle bg-raised px-3 py-2 text-sm text-secondary transition-colors hover:border-primary/50 hover:text-foreground"
-                >
-                  <Icon className="size-4 text-primary" aria-hidden />
-                  {label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-lg border border-subtle bg-raised px-3 py-2 text-sm text-secondary transition-colors hover:border-primary/50 hover:text-foreground"
-              >
-                <User className="size-4 text-primary" aria-hidden />
-                Your profile
-              </Link>
-            </li>
-          </ul>
-        </section>
-      </div>
-
-      <p className="mt-8 text-sm text-muted">
-        Progress, XP, streaks, and review cards are stored on this device for now. Accounts (sync
-        across devices) and the streak-freeze job arrive with the auth phase.
-      </p>
+      <DashboardStats />
     </div>
   );
 }
