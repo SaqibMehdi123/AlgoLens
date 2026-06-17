@@ -65,6 +65,8 @@ export const users = pgTable("users", {
   username: citext("username").notNull().unique(),
   displayName: text("display_name"),
   avatarUrl: text("avatar_url"),
+  // bcrypt hash for email/password sign-in. NULL for OAuth-only accounts (they have no password).
+  passwordHash: text("password_hash"),
   role: userRole("role").notNull().default("learner"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   createdAt: createdAt(),

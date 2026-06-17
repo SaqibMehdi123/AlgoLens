@@ -1,8 +1,8 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
 import { authAccounts, db, users } from "@algolens/db";
 import { and, eq } from "drizzle-orm";
 import type { Adapter, AdapterAccount, AdapterUser } from "next-auth/adapters";
+import { allocateUser } from "@/lib/users";
 
 /**
  * Auth.js adapter mapped onto AlgoLens's bespoke identity schema (docs/03 §1). The stock
@@ -27,38 +27,17 @@ function toAdapterUser(u: UserRow): AdapterUser {
   };
 }
 
-/** Derive a schema-legal username from an email local-part (lowercase, alnum + underscore). */
-function baseUsername(email: string | null | undefined): string {
-  const local = (email ?? "").split("@")[0] ?? "";
-  const cleaned = local.toLowerCase().replace(/[^a-z0-9_]+/g, "");
-  return cleaned.slice(0, 24) || "user";
-}
-
 export function AlgoLensAdapter(): Adapter {
   return {
     async createUser(user) {
-      const base = baseUsername(user.email);
-      // `username` is NOT NULL UNIQUE but Auth.js doesn't supply one — allocate a unique handle,
-      // suffixing on collision. The DB-generated id is returned and used by linkAccount.
-      for (let attempt = 0; attempt < 6; attempt++) {
-        const username = attempt === 0 ? base : `${base}-${randomUUID().slice(0, 6)}`;
-        try {
-          const [row] = await db()
-            .insert(users)
-            .values({
-              email: user.email,
-              username,
-              displayName: user.name ?? null,
-              avatarUrl: user.image ?? null,
-              emailVerifiedAt: user.emailVerified ?? null,
-            })
-            .returning();
-          return toAdapterUser(row!);
-        } catch (err) {
-          if (attempt === 5) throw err; // exhausted retries — surface the conflict
-        }
-      }
-      throw new Error("createUser: could not allocate a unique username");
+      // Shared allocator generates the required unique `username` (see lib/users).
+      const row = await allocateUser({
+        email: user.email,
+        displayName: user.name ?? null,
+        avatarUrl: user.image ?? null,
+        emailVerifiedAt: user.emailVerified ?? null,
+      });
+      return toAdapterUser(row);
     },
 
     async getUser(id) {

@@ -29,6 +29,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@mdx-js/mdx": "^3.1.0",
     "@uiw/react-codemirror": "^4.23.7",
+    "bcryptjs": "^3.0.3",
     "drizzle-orm": "catalog:",
     "lucide-react": "^0.468.0",
     "next": "^15.5.16",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "@tailwindcss/typography": "^0.5.16",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "catalog:",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",

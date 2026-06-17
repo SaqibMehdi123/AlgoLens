@@ -2,6 +2,7 @@ import { Check, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { CredentialsForm } from "@/components/auth/credentials-form";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 
 export const metadata = { title: "Create your account" };
@@ -17,14 +18,14 @@ export default async function RegisterPage() {
   if (session?.user) redirect("/dashboard");
 
   return (
-    <main className="mx-auto flex min-h-[78vh] max-w-md flex-col justify-center gap-7 px-4 py-12">
+    <main className="mx-auto flex min-h-[80vh] max-w-md flex-col justify-center gap-7 px-4 py-12">
       <div className="space-y-3 text-center">
         <Link href="/" className="inline-flex items-center gap-2 font-semibold tracking-tight">
           <Sparkles className="size-5 text-primary" />
           AlgoLens
         </Link>
         <h1 className="text-2xl font-semibold text-foreground">Create your account</h1>
-        <p className="text-sm text-muted">Free, no credit card. One click with GitHub or Google.</p>
+        <p className="text-sm text-muted">Free, no credit card. Email &amp; password, or one click with GitHub / Google.</p>
       </div>
 
       <div className="rounded-2xl border border-subtle bg-surface p-6 shadow-sm">
@@ -36,10 +37,16 @@ export default async function RegisterPage() {
             </li>
           ))}
         </ul>
+
+        <CredentialsForm mode="register" />
+
+        <div className="my-5 flex items-center gap-3 text-xs text-muted">
+          <span className="h-px flex-1 bg-subtle" />
+          or sign up with
+          <span className="h-px flex-1 bg-subtle" />
+        </div>
+
         <OAuthButtons redirectTo="/dashboard" />
-        <p className="mt-4 text-center text-xs text-muted">
-          We use GitHub / Google to sign you in — your account is created automatically the first time.
-        </p>
       </div>
 
       <p className="text-center text-sm text-muted">
