@@ -2,7 +2,7 @@
 
 import type { TrackMeta } from "@algolens/content";
 import { cn } from "@algolens/ui";
-import { Check, Circle, Lock } from "lucide-react";
+import { BookOpen, Check, Circle, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { progressStore } from "@/lib/progress";
@@ -21,39 +21,51 @@ export function useTrackStats(track: TrackMeta) {
   return { total: lessons.length, done, nextLesson, progress };
 }
 
-/** Track card for the /learn catalog: progress bar + continue CTA. */
+/** Track card for the /learn catalog (design comp): icon, level badge, stats row, progress bar. */
 export function TrackCard({ track }: { track: TrackMeta }) {
-  const { total, done, nextLesson } = useTrackStats(track);
+  const { total, done } = useTrackStats(track);
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  const moduleCount = track.modules.length;
+  const minutes = track.modules.flatMap((m) => m.lessons).reduce((sum, l) => sum + l.estMinutes, 0);
+  const hours = Math.max(1, Math.round(minutes / 60));
   return (
-    <div className="rounded-xl border border-subtle bg-surface p-6">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold text-foreground">{track.title}</h2>
-        <span className="font-mono text-xs text-secondary">
-          {done}/{total} lessons
-        </span>
+    <Link
+      href={`/learn/${track.slug}`}
+      className="lift block rounded-[18px] border border-subtle bg-surface p-[26px]"
+    >
+      <div className="flex flex-wrap items-start gap-5">
+        <div className="grid size-[58px] shrink-0 place-items-center rounded-[15px] bg-primary/10 text-primary">
+          <BookOpen className="size-6" />
+        </div>
+        <div className="min-w-[240px] flex-1">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
+            <h2 className="text-[21px] font-bold text-foreground">{track.title}</h2>
+            <span className="rounded-md border border-sorted px-2 py-0.5 font-mono text-[11px] font-semibold text-sorted">
+              Beginner → Intermediate
+            </span>
+          </div>
+          <p className="mb-4 max-w-[620px] text-[14.5px] leading-relaxed text-secondary">
+            {track.description}
+          </p>
+          <div className="mb-3.5 flex flex-wrap items-center gap-3 font-mono text-[12.5px] text-secondary">
+            <span>{moduleCount} modules</span>
+            <span className="text-border-strong">·</span>
+            <span>{total} lessons</span>
+            <span className="text-border-strong">·</span>
+            <span>~{hours} hours</span>
+          </div>
+          <div className="mb-2 flex items-center justify-between font-mono text-xs text-secondary">
+            <span>
+              {done} / {total} complete
+            </span>
+            <span className="font-semibold text-primary">{pct}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-md bg-raised">
+            <div className="h-full bg-linear-to-r from-primary to-primary-hover" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
       </div>
-      <p className="mt-2 text-sm leading-relaxed text-secondary">{track.description}</p>
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden>
-        <div className="h-full bg-sorted transition-[width]" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="mt-4 flex gap-3">
-        <Link
-          href={`/learn/${track.slug}`}
-          className="rounded-lg border border-subtle px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-raised"
-        >
-          Track overview
-        </Link>
-        {nextLesson && (
-          <Link
-            href={`/learn/${track.slug}/${nextLesson.slug}`}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-          >
-            {done === 0 ? "Start" : "Continue"}: {nextLesson.title}
-          </Link>
-        )}
-      </div>
-    </div>
+    </Link>
   );
 }
 

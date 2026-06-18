@@ -15,33 +15,32 @@ export default async function DashboardPage() {
   const u = session.user;
   const label = u.name || u.email || "there";
   const initial = (label.trim().charAt(0) || "?").toUpperCase();
+  const firstName = (u.name || u.email || "").trim().split(/[\s@]/)[0] || undefined;
 
   return (
-    <div className="py-10">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-subtle bg-surface p-6">
-        <div className="flex items-center gap-4">
-          <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-subtle bg-raised">
-            {u.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={u.image} alt="" className="size-full object-cover" />
-            ) : (
-              <span className="text-xl font-semibold text-foreground">{initial}</span>
+    <div className="mx-auto w-full max-w-[1180px] py-7">
+      {/* Profile header */}
+      <header className="mb-[22px] flex flex-wrap items-center gap-[18px] rounded-2xl border border-subtle bg-surface px-6 py-[22px]">
+        <div className="grid size-[60px] shrink-0 place-items-center overflow-hidden rounded-2xl">
+          {u.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={u.image} alt="" className="size-full object-cover" />
+          ) : (
+            <span className="grid size-full place-items-center bg-linear-to-br from-primary to-visited font-mono text-2xl font-bold text-white">
+              {initial}
+            </span>
+          )}
+        </div>
+        <div className="min-w-[200px] flex-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-[22px] font-bold text-foreground">{u.name || u.email}</h1>
+            {u.role && u.role !== "learner" && (
+              <span className="rounded-md border border-primary px-2 py-0.5 font-mono text-[11px] font-semibold text-primary">
+                {u.role}
+              </span>
             )}
           </div>
-          <div>
-            <p className="text-sm text-muted">Welcome back,</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {u.name || u.email}
-            </h1>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-secondary">
-              {u.email && <span>{u.email}</span>}
-              {u.role && u.role !== "learner" && (
-                <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-muted">
-                  {u.role}
-                </span>
-              )}
-            </div>
-          </div>
+          {u.email && <div className="mt-0.5 font-mono text-[13px] text-secondary">{u.email}</div>}
         </div>
         <form
           action={async () => {
@@ -56,7 +55,7 @@ export default async function DashboardPage() {
         </form>
       </header>
 
-      <DashboardStats />
+      <DashboardStats firstName={firstName} />
     </div>
   );
 }

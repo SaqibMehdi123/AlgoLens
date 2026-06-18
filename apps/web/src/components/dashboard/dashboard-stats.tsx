@@ -1,99 +1,127 @@
 "use client";
 
 import { foundationsTrack } from "@algolens/content";
-import { Activity, BookOpen, FlaskConical, Play, User } from "lucide-react";
+import { Activity, Diamond, FlaskConical, Flame, Info, Play, User } from "lucide-react";
 import Link from "next/link";
 import { useTrackStats } from "@/components/learn/track-progress";
-import {
-  ActivityHeatmap,
-  DueReviews,
-  StreakFlame,
-  useRetention,
-  XpRing,
-} from "@/components/retention/widgets";
+import { ActivityHeatmap, useRetention } from "@/components/retention/widgets";
+import { statsSnapshot } from "@/lib/retention";
 
-const quickLinks = [
-  { href: "/visualize/merge-sort", label: "Merge Sort playground", icon: Play },
-  { href: "/analyze", label: "Complexity Lab", icon: Activity },
-  { href: "/practice", label: "Practice problems", icon: FlaskConical },
+const jump = [
+  { href: "/visualize/quick-sort", label: "Playground", sub: "quick sort", icon: Play, color: "text-primary" },
+  { href: "/analyze", label: "Complexity Lab", sub: "analyze a function", icon: Activity, color: "text-swap" },
+  { href: "/practice", label: "Problems", sub: "browse & solve", icon: FlaskConical, color: "text-sorted" },
+  { href: "/profile", label: "Profile", sub: "view & share", icon: User, color: "text-visited" },
 ];
 
+function greeting(): string {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
 /**
- * Device-local progress widgets (ADR-0003/0005) — streak, XP, continue-learning, reviews, heatmap.
- * Rendered under the server-side profile header on the dashboard.
+ * Device-local progress widgets (ADR-0003/0005), laid out per the design comp — streak/XP chips,
+ * continue-learning + due-reviews, activity heatmap, and quick links.
  */
-export function DashboardStats() {
-  const { total, done, nextLesson } = useTrackStats(foundationsTrack);
+export function DashboardStats({ firstName }: { firstName?: string }) {
   const state = useRetention();
+  const stats = statsSnapshot(state);
+  const { total, done, nextLesson } = useTrackStats(foundationsTrack);
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  const mins = Math.max(1, Math.round(stats.dueCount * 0.6));
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-subtle bg-surface p-5">
-        <StreakFlame state={state} />
-        <XpRing state={state} />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-muted">
-            <BookOpen className="size-4" aria-hidden />
-            Continue learning
-          </h2>
-          <p className="mt-3 text-lg font-semibold text-foreground">{foundationsTrack.title}</p>
-          <p className="mt-1 text-sm text-secondary">
-            {done}/{total} lessons complete · {pct}%
-          </p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden>
-            <div className="h-full bg-sorted transition-[width]" style={{ width: `${pct}%` }} />
+      {/* Greeting + streak / XP chips */}
+      <div className="mb-[18px] flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold tracking-[-0.01em] text-foreground">
+          {greeting()}
+          {firstName ? `, ${firstName}` : ""}.
+        </h2>
+        <div className="flex gap-3">
+          <div className="flex items-center gap-2.5 rounded-[11px] border border-subtle bg-surface px-3.5 py-2.5">
+            <Flame className="size-[18px] text-frontier" />
+            <div>
+              <div className="font-mono text-[17px] font-bold leading-none text-foreground">{stats.currentStreak}</div>
+              <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-wider text-muted">day streak</div>
+            </div>
           </div>
+          <div className="flex items-center gap-2.5 rounded-[11px] border border-subtle bg-surface px-3.5 py-2.5">
+            <Diamond className="size-[18px] text-primary" />
+            <div>
+              <div className="font-mono text-[17px] font-bold leading-none text-foreground">
+                Lv {stats.level.level} · {stats.xpTotal.toLocaleString()}
+              </div>
+              <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-wider text-muted">xp</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Continue learning + Due reviews */}
+      <div className="mb-[18px] grid gap-[18px] lg:grid-cols-[1.4fr_1fr]">
+        <Link
+          href={nextLesson ? `/learn/${foundationsTrack.slug}/${nextLesson.slug}` : `/learn/${foundationsTrack.slug}`}
+          className="lift block rounded-2xl border border-subtle bg-surface p-[22px]"
+        >
+          <div className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">Continue learning</div>
+          <h3 className="text-[19px] font-semibold text-foreground">{foundationsTrack.title}</h3>
           {nextLesson && (
-            <Link
-              href={`/learn/${foundationsTrack.slug}/${nextLesson.slug}`}
-              className="mt-5 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
-            >
-              {done === 0 ? "Start" : "Continue"}: {nextLesson.title} →
-            </Link>
+            <p className="mt-1 text-sm text-secondary">
+              Next up: <span className="font-semibold text-foreground">{nextLesson.title}</span>
+            </p>
           )}
-        </section>
+          <div className="mb-2 mt-[18px] flex items-center justify-between font-mono text-xs text-secondary">
+            <span>{done} / {total} lessons</span>
+            <span className="font-semibold text-primary">{pct}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-md bg-raised">
+            <div className="h-full bg-linear-to-r from-primary to-primary-hover" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="mt-[18px] inline-flex items-center gap-1.5 font-mono text-[13px] font-semibold text-primary">
+            {done === 0 ? "Start lesson" : "Resume lesson"} <span aria-hidden>→</span>
+          </div>
+        </Link>
 
-        <DueReviews state={state} />
+        <Link href="/review" className="lift flex flex-col rounded-2xl border border-subtle bg-surface p-[22px]">
+          <div className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">Due reviews</div>
+          <div className="flex items-baseline gap-2.5">
+            <span className="font-mono text-[48px] font-bold leading-none text-frontier">{stats.dueCount}</span>
+            <span className="text-sm text-secondary">cards · ~{mins} min</span>
+          </div>
+          <p className="mt-3.5 text-[13.5px] leading-relaxed text-secondary">
+            {stats.dueCount > 0
+              ? "Spaced repetition keeps what you've learned from fading. A short session today protects your streak."
+              : "You're all caught up. New cards appear as you finish lessons and miss quiz questions."}
+          </p>
+          <div className="mt-auto pt-[18px]">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[13px] font-semibold text-primary">
+              {stats.dueCount > 0 ? "Start review" : "Browse lessons"} <span aria-hidden>→</span>
+            </span>
+          </div>
+        </Link>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <ActivityHeatmap state={state} />
-        </section>
-        <section className="rounded-xl border border-subtle bg-surface p-6">
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">Jump back in</h2>
-          <ul className="flex flex-col gap-2">
-            {quickLinks.map(({ href, label, icon: Icon }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className="flex items-center gap-2 rounded-lg border border-subtle bg-raised px-3 py-2 text-sm text-secondary transition-colors hover:border-primary/50 hover:text-foreground"
-                >
-                  <Icon className="size-4 text-primary" aria-hidden />
-                  {label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 rounded-lg border border-subtle bg-raised px-3 py-2 text-sm text-secondary transition-colors hover:border-primary/50 hover:text-foreground"
-              >
-                <User className="size-4 text-primary" aria-hidden />
-                Your profile
-              </Link>
-            </li>
-          </ul>
-        </section>
+      {/* Activity heatmap */}
+      <div className="mb-[18px] rounded-2xl border border-subtle bg-surface p-[22px]">
+        <ActivityHeatmap state={state} />
       </div>
 
-      <p className="mt-8 text-sm text-muted">
-        Progress, XP, streaks, and review cards are stored on this device for now. Cross-device sync
-        and the streak-freeze job arrive with durable persistence (next on the roadmap).
+      {/* Jump back in */}
+      <div className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">Jump back in</div>
+      <div className="mb-6 grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        {jump.map(({ href, label, sub, icon: Icon, color }) => (
+          <Link key={href} href={href} className="lift block rounded-[13px] border border-subtle bg-surface p-[18px]">
+            <Icon className={`mb-2.5 size-[18px] ${color}`} />
+            <div className="text-sm font-semibold text-foreground">{label}</div>
+            <div className="mt-0.5 font-mono text-[11.5px] text-muted">{sub}</div>
+          </Link>
+        ))}
+      </div>
+
+      <p className="flex items-center justify-center gap-2 text-center font-mono text-xs text-muted">
+        <Info className="size-3.5 text-compare" />
+        Progress is stored on this device until cross-device sync ships.
       </p>
     </>
   );
