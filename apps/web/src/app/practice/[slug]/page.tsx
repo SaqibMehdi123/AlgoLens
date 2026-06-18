@@ -1,6 +1,13 @@
 import { allStarters, getProblem, problems, problemSignature } from "@algolens/content";
-import { ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+const DIFF_COLOR: Record<string, string> = {
+  intro: "var(--viz-sorted)",
+  easy: "var(--viz-swap)",
+  medium: "var(--viz-compare)",
+  hard: "var(--viz-pivot)",
+};
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -30,17 +37,22 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
     .map((c) => ({ args: c.args, expected: c.expected }));
 
   return (
-    <div className="py-6">
+    <div className="mx-auto w-full max-w-[1280px] py-6">
       <Link
         href="/practice"
-        className="inline-flex items-center gap-1 text-sm text-secondary transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1.5 font-mono text-[12.5px] text-secondary transition-colors hover:text-foreground"
       >
-        <ChevronLeft className="size-4" />
+        <ArrowLeft className="size-4" />
         All problems
       </Link>
-      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{p.title}</h1>
-        <span className="font-mono text-sm text-secondary">{p.difficulty}</span>
+      <div className="mb-5 mt-4 flex flex-wrap items-center gap-2.5">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-foreground">{p.title}</h1>
+        <span
+          className="rounded-md border px-2 py-0.5 font-mono text-[11px] font-semibold capitalize"
+          style={{ borderColor: DIFF_COLOR[p.difficulty], color: DIFF_COLOR[p.difficulty] }}
+        >
+          {p.difficulty}
+        </span>
       </div>
 
       <Workspace

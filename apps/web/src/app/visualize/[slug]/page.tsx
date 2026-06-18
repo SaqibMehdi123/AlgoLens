@@ -1,7 +1,7 @@
 import { getAlgo, registry } from "@algolens/algo-core";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import { PlayerShell } from "@/components/visualizer/player-shell";
 
 export function generateStaticParams() {
@@ -28,23 +28,28 @@ export default async function VisualizePlayground({
   if (!entry) notFound();
 
   return (
-    <div className="py-6">
+    <div className="mx-auto w-full max-w-[1280px] py-6">
       <Link
         href="/visualize"
-        className="inline-flex items-center gap-1 text-sm text-secondary transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1.5 font-mono text-[12.5px] text-secondary transition-colors hover:text-foreground"
       >
-        <ChevronLeft className="size-4" />
+        <ArrowLeft className="size-4" />
         All algorithms
       </Link>
 
-      <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{entry.title}</h1>
-        <span className="font-mono text-sm text-secondary">
-          avg {entry.complexity.average} · space {entry.complexity.space}
+      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-foreground">{entry.title}</h1>
+        <span className="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[11.5px] font-semibold text-primary">
+          avg {entry.complexity.average}
+        </span>
+        <span className="rounded-md bg-raised px-2 py-0.5 font-mono text-[11.5px] text-secondary">
+          space {entry.complexity.space}
         </span>
       </div>
 
-      <PlayerShell algoKey={slug} />
+      <div className="mt-5">
+        <PlayerShell algoKey={slug} />
+      </div>
 
       <p className="mt-2 text-xs text-muted">
         Keyboard: <kbd className="font-mono">Space</kbd> play/pause ·{" "}
