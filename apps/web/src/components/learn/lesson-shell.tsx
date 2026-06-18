@@ -12,6 +12,13 @@ import { retentionStore } from "@/lib/retention";
 
 const XP_PER_LESSON = XP_AWARDS.lesson_completed;
 
+const DIFF_COLOR: Record<string, string> = {
+  intro: "var(--viz-sorted)",
+  easy: "var(--viz-swap)",
+  medium: "var(--viz-compare)",
+  hard: "var(--viz-pivot)",
+};
+
 export interface LessonShellProps {
   track: TrackMeta;
   lesson: LessonMeta;
@@ -121,9 +128,17 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
 
         {/* Prose column — 68ch (docs/05 §2); embedded blocks break out via not-prose styling */}
         <div ref={articleRef} className="min-w-0">
-          <p className="mb-2 font-mono text-xs uppercase tracking-widest text-muted">
-            {track.title} · {lesson.estMinutes} min · {passedCount}/{lesson.quizCount} quizzes
-          </p>
+          <div className="mb-4 flex flex-wrap items-center gap-2.5">
+            <span
+              className="rounded-md border px-2 py-0.5 font-mono text-[11px] font-semibold capitalize"
+              style={{ borderColor: DIFF_COLOR[lesson.difficulty], color: DIFF_COLOR[lesson.difficulty] }}
+            >
+              {lesson.difficulty}
+            </span>
+            <span className="font-mono text-xs text-muted">
+              {lesson.estMinutes} min · {passedCount}/{lesson.quizCount} quizzes
+            </span>
+          </div>
           <article
             className={cn(
               "prose prose-invert max-w-[68ch]",
@@ -173,7 +188,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
               {next ? (
                 <Link
                   href={`/learn/${track.slug}/${next.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
                 >
                   Next: {next.title}
                   <ArrowRight className="size-4" />
@@ -181,7 +196,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
               ) : (
                 <Link
                   href="/learn"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
                 >
                   Back to tracks
                 </Link>
@@ -189,7 +204,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
               {lesson.practiceSlug && (
                 <Link
                   href={`/practice/${lesson.practiceSlug}`}
-                  className="inline-flex items-center rounded-lg border border-subtle px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-raised"
+                  className="inline-flex items-center rounded-lg border border-border-strong px-4 py-2 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-raised"
                 >
                   Practice this
                 </Link>

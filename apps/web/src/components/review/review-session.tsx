@@ -31,9 +31,9 @@ function fmtInterval(days: number): string {
 }
 
 const GRADES: { grade: ReviewGrade; label: string; tone: string }[] = [
-  { grade: "again", label: "Again", tone: "border-[var(--viz-swap)] text-swap hover:bg-[color-mix(in_srgb,var(--viz-swap)_12%,transparent)]" },
-  { grade: "hard", label: "Hard", tone: "border-[var(--viz-compare)] text-compare hover:bg-[color-mix(in_srgb,var(--viz-compare)_12%,transparent)]" },
-  { grade: "good", label: "Good", tone: "border-[var(--viz-frontier)] text-frontier hover:bg-[color-mix(in_srgb,var(--viz-frontier)_12%,transparent)]" },
+  { grade: "again", label: "Again", tone: "border-[var(--viz-pivot)] text-pivot hover:bg-[color-mix(in_srgb,var(--viz-pivot)_12%,transparent)]" },
+  { grade: "hard", label: "Hard", tone: "border-[var(--viz-frontier)] text-frontier hover:bg-[color-mix(in_srgb,var(--viz-frontier)_12%,transparent)]" },
+  { grade: "good", label: "Good", tone: "border-[var(--viz-swap)] text-swap hover:bg-[color-mix(in_srgb,var(--viz-swap)_12%,transparent)]" },
   { grade: "easy", label: "Easy", tone: "border-[var(--viz-sorted)] text-sorted hover:bg-[color-mix(in_srgb,var(--viz-sorted)_12%,transparent)]" },
 ];
 
@@ -86,7 +86,7 @@ export function ReviewSession() {
           Complete a lesson to grow your deck — key facts and any quiz you miss become review
           cards, scheduled with SM-2 spaced repetition.
         </p>
-        <Link href="/learn" className="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
+        <Link href="/learn" className="mt-6 inline-block rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] hover:bg-primary-hover">
           Browse lessons
         </Link>
       </div>
@@ -104,7 +104,7 @@ export function ReviewSession() {
           {queue.length} card{queue.length === 1 ? "" : "s"} reviewed · {stats.currentStreak}-day streak ·{" "}
           {stats.xpTotal} XP
         </p>
-        <Link href="/dashboard" className="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
+        <Link href="/dashboard" className="mt-6 inline-block rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] hover:bg-primary-hover">
           Back to dashboard
         </Link>
       </div>

@@ -2,9 +2,9 @@ import { AlertTriangle, Lightbulb, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 
 const KINDS = {
-  insight: { icon: Lightbulb, label: "Insight", accent: "var(--viz-sorted)" },
-  warning: { icon: AlertTriangle, label: "Warning", accent: "var(--viz-compare)" },
-  tryit: { icon: Wrench, label: "Try it", accent: "var(--viz-frontier)" },
+  insight: { icon: Lightbulb, label: "Insight", color: "var(--primary)", onColor: "#ffffff" },
+  warning: { icon: AlertTriangle, label: "Warning", color: "var(--viz-frontier)", onColor: "#0a0c12" },
+  tryit: { icon: Wrench, label: "Try it", color: "var(--viz-sorted)", onColor: "#0a0c12" },
 } as const;
 
 export interface CalloutProps {
@@ -12,20 +12,27 @@ export interface CalloutProps {
   children: ReactNode;
 }
 
-/** Lesson callout (docs/05 §4: Insight / Warning / Try-it). */
+/** Lesson callout (design comp): filled tint, colored icon chip, mono label (Insight / Warning / Try-it). */
 export function Callout({ kind = "insight", children }: CalloutProps) {
-  const { icon: Icon, label, accent } = KINDS[kind] ?? KINDS.insight;
+  const { icon: Icon, label, color, onColor } = KINDS[kind] ?? KINDS.insight;
   return (
     <aside
-      className="my-6 rounded-xl border border-subtle bg-surface p-4 not-prose"
-      style={{ borderLeft: `3px solid ${accent}` }}
+      className="not-prose my-6 flex gap-3.5 rounded-xl border p-4"
+      style={{ borderColor: color, background: `color-mix(in srgb, ${color} 10%, transparent)` }}
     >
-      <p className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide" style={{ color: accent }}>
-        <Icon className="size-4" aria-hidden />
-        {label}
-      </p>
-      <div className="text-sm leading-relaxed text-secondary [&_code]:font-mono [&_code]:text-foreground [&_strong]:text-foreground">
-        {children}
+      <span
+        className="grid size-6 shrink-0 place-items-center rounded-[7px]"
+        style={{ background: color, color: onColor }}
+      >
+        <Icon className="size-3.5" aria-hidden />
+      </span>
+      <div>
+        <p className="mb-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider" style={{ color }}>
+          {label}
+        </p>
+        <div className="text-[15px] leading-relaxed text-secondary [&_a]:font-semibold [&_a]:text-primary [&_code]:font-mono [&_code]:text-foreground [&_strong]:text-foreground">
+          {children}
+        </div>
       </div>
     </aside>
   );
