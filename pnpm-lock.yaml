@@ -255,6 +255,9 @@ importers:
       '@algolens/algo-core':
         specifier: workspace:*
         version: link:../algo-core
+      '@algolens/content':
+        specifier: workspace:^
+        version: link:../../content
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(gel@2.2.0)(postgres@3.4.9)

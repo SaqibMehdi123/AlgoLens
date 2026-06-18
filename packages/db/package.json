@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@algolens/algo-core": "workspace:*",
+    "@algolens/content": "workspace:^",
     "drizzle-orm": "catalog:",
     "postgres": "^3.4.5"
   },
