@@ -28,7 +28,7 @@ export function OAuthButtons({ redirectTo = "/dashboard" }: { redirectTo?: strin
             await signIn("github", { redirectTo });
           }}
         >
-          <Button type="submit" size="lg" className="w-full">
+          <Button type="submit" size="lg" variant="secondary" className="w-full">
             <Github className="size-[18px]" />
             Continue with GitHub
           </Button>

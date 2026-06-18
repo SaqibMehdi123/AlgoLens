@@ -17,6 +17,7 @@
 :root {
   /* Background layers — deep, cool near-black blues */
   --background: #0a0c12;
+  --elevated: #0e1119; /* subtle layer between bg and surface (inputs, inset previews, panels) */
   --surface: #141823;
   --raised: #1a1f2c;
   --subtle: #232a39; /* 1px borders */
@@ -53,6 +54,7 @@
 
 .light {
   --background: #f6f7fb;
+  --elevated: #ffffff;
   --surface: #ffffff;
   --raised: #f1f3f9;
   --subtle: #e6e9f1;
@@ -93,6 +95,7 @@
    `inline` makes the utilities emit var() so .light overrides take effect at runtime. */
 @theme inline {
   --color-background: var(--background);
+  --color-elevated: var(--elevated);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
   --color-subtle: var(--subtle);

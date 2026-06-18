@@ -9,7 +9,7 @@ import {
 } from "@/lib/auth-actions";
 
 const inputClass =
-  "w-full rounded-[10px] border border-border-strong bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted transition focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-ring/30";
+  "w-full rounded-[10px] border border-border-strong bg-elevated px-3 py-3 text-sm text-foreground placeholder:text-muted transition focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-ring/25";
 
 /** Email + password form for /login and /register. Uses a server action via useActionState. */
 export function CredentialsForm({ mode }: { mode: "login" | "register" }) {

@@ -21,6 +21,10 @@ export function SiteNav() {
   const pathname = usePathname();
   const dueCount = statsSnapshot(useRetention()).dueCount;
   const { data: session, status } = useSession();
+
+  // Auth pages render their own standalone header (AuthHeader); hide the app nav there.
+  if (pathname === "/login" || pathname === "/register") return null;
+
   return (
     <header className="sticky top-0 z-40 border-b border-subtle bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-1 px-4 sm:px-6">
@@ -39,7 +43,7 @@ export function SiteNav() {
                 className={cn(
                   "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[13px] transition-colors",
                   active
-                    ? "bg-raised text-foreground"
+                    ? "bg-primary/10 font-semibold text-primary"
                     : "text-secondary hover:bg-raised hover:text-foreground",
                 )}
               >
@@ -57,7 +61,7 @@ export function SiteNav() {
             className={cn(
               "relative grid size-9 place-items-center rounded-lg transition-colors",
               pathname === "/review"
-                ? "bg-raised text-foreground"
+                ? "bg-primary/10 text-primary"
                 : "text-secondary hover:bg-raised hover:text-foreground",
             )}
           >

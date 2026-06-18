@@ -26,12 +26,14 @@ export function UserMenu({ name, email, image }: { name?: string | null; email?:
         <span className="hidden sm:inline">Dashboard</span>
       </Link>
 
-      <Link href="/profile" aria-label={`Your profile (${label})`} className="grid size-8 place-items-center overflow-hidden rounded-full border border-subtle bg-raised">
+      <Link href="/profile" aria-label={`Your profile (${label})`} className="grid size-8 place-items-center overflow-hidden rounded-full border border-subtle">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image} alt="" className="size-full object-cover" />
         ) : (
-          <span className="text-xs font-semibold text-foreground">{initial}</span>
+          <span className="grid size-full place-items-center bg-linear-to-br from-primary to-visited font-mono text-xs font-bold text-white">
+            {initial}
+          </span>
         )}
       </Link>
 
