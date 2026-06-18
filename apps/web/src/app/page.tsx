@@ -113,7 +113,7 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-mono font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
             >
               Get started — free
               <ArrowRight className="size-4" />
@@ -156,7 +156,7 @@ export default function Home() {
           {pillars.map(({ icon: Icon, title, body, points, href, cta }) => (
             <div
               key={title}
-              className="group rounded-2xl border border-subtle bg-surface p-6 transition-colors hover:border-primary/40"
+              className="lift group rounded-2xl border border-subtle bg-surface p-6 transition-colors hover:border-primary/40"
             >
               <div className="flex items-center gap-3">
                 <div className="grid size-10 place-items-center rounded-xl bg-raised text-primary">
@@ -193,7 +193,7 @@ export default function Home() {
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(({ n, title, body }) => (
-            <div key={n} className="rounded-2xl border border-subtle bg-surface p-6">
+            <div key={n} className="lift rounded-2xl border border-subtle bg-surface p-6">
               <div className="grid size-9 place-items-center rounded-full bg-primary/15 text-sm font-bold text-primary">
                 {n}
               </div>
@@ -214,7 +214,7 @@ export default function Home() {
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {principles.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="flex gap-4 rounded-2xl border border-subtle bg-surface p-6">
+            <div key={title} className="lift flex gap-4 rounded-2xl border border-subtle bg-surface p-6">
               <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-raised text-primary">
                 <Icon className="size-5" />
               </div>
@@ -270,7 +270,7 @@ export default function Home() {
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-mono font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
           >
             Create your free account
             <ArrowRight className="size-4" />

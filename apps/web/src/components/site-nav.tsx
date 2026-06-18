@@ -37,7 +37,7 @@ export function SiteNav() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[13px] transition-colors",
                   active
                     ? "bg-raised text-foreground"
                     : "text-secondary hover:bg-raised hover:text-foreground",
@@ -83,7 +83,7 @@ export function SiteNav() {
               <Link
                 href="/login"
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  "rounded-lg px-3 py-1.5 font-mono text-[13px] font-semibold transition-colors",
                   pathname === "/login"
                     ? "bg-raised text-foreground"
                     : "text-secondary hover:bg-raised hover:text-foreground",
@@ -93,7 +93,7 @@ export function SiteNav() {
               </Link>
               <Link
                 href="/register"
-                className="rounded-lg bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+                className="rounded-lg bg-primary px-3.5 py-1.5 font-mono text-[13px] font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
               >
                 Get started
               </Link>

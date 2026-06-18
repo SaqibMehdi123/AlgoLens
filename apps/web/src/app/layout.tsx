@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Progressive enhancement: real fonts if the CDN is reachable, system stack otherwise. */}
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
         />
       </head>
       <body className="min-h-dvh font-sans">

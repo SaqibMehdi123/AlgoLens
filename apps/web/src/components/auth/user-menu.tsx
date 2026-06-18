@@ -18,7 +18,7 @@ export function UserMenu({ name, email, image }: { name?: string | null; email?:
       <Link
         href="/dashboard"
         className={cn(
-          "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors",
+          "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-[13px] transition-colors",
           onDashboard ? "bg-raised text-foreground" : "text-secondary hover:bg-raised hover:text-foreground",
         )}
       >

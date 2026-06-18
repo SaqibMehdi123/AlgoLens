@@ -5,75 +5,88 @@
 @source "../";
 @source "../../../../packages/ui/src";
 
-/* Dark is the default; light is opt-in via a `.light` class on <html> (docs/05 §2). */
+/* Dark is the default; light is opt-in via a `.light` class on <html>. */
 @custom-variant light (&:where(.light, .light *));
 
 /* ============================================================
-   Design tokens — docs/05 §2. These raw vars flip with theme;
-   @theme inline below maps them to Tailwind color utilities.
+   Design tokens — adopted from the "Algorithm visualizer design
+   system" comps (IBM Plex + deeper indigo-on-near-black). These
+   raw vars flip with theme; @theme inline below maps them to
+   Tailwind color utilities.
    ============================================================ */
 :root {
-  /* Background layers — cool near-black blues, not pure black */
-  --background: #0b0e14;
-  --surface: #11151d;
-  --raised: #1a202c;
-  --subtle: #2a3140; /* 1px borders */
-  --ring: #7aa2f7; /* focus ring */
+  /* Background layers — deep, cool near-black blues */
+  --background: #0a0c12;
+  --surface: #141823;
+  --raised: #1a1f2c;
+  --subtle: #232a39; /* 1px borders */
+  --border-strong: #323b4e; /* inputs, dividers, hover borders */
+  --ring: #8b95ff; /* focus ring */
+  --accent-glow: rgba(110, 123, 255, 0.15);
 
   /* Text */
-  --foreground: #e6eaf2;
-  --secondary-fg: #9aa4b8;
-  --muted-fg: #6b7385;
+  --foreground: #e5e8f1;
+  --secondary-fg: #98a1b5;
+  --muted-fg: #5e6779;
 
   /* Brand / primary action — electric indigo */
-  --primary: #6c7bff;
-  --primary-hover: #8591ff;
-  --primary-foreground: #0b0e14;
+  --primary: #6e7bff;
+  --primary-hover: #8b95ff;
+  --primary-foreground: #ffffff;
 
   /* Semantic visualization palette — fixed meanings everywhere */
-  --viz-compare: #f5a524; /* amber */
-  --viz-swap: #ff6b6b; /* coral */
-  --viz-sorted: #2dd4a7; /* mint */
+  --viz-compare: #f5b13d; /* amber */
+  --viz-swap: #38bdf8; /* sky */
+  --viz-sorted: #34d399; /* mint */
   --viz-visited: #a78bfa; /* violet */
-  --viz-frontier: #22d3ee; /* cyan */
-  --viz-pivot: #f472b6; /* pink */
-  --viz-range: #3d4456; /* inactive slate */
+  --viz-frontier: #fb923c; /* orange */
+  --viz-pivot: #fb7185; /* rose */
+  --viz-range: #283142; /* inactive slate */
 
   /* Renderer support tokens */
-  --viz-bar: #6c7bff; /* default element fill = brand indigo */
-  --viz-edge: #2a3140;
-  --viz-needle: #f5a524;
-  --viz-on-fill: #0b0e14; /* text drawn on a filled bar/node */
-  --viz-text-muted: #9aa4b8;
+  --viz-bar: #6e7bff; /* default element fill = brand indigo */
+  --viz-edge: #232a39;
+  --viz-needle: #f5b13d;
+  --viz-on-fill: #0a0c12; /* text drawn on a filled bar/node */
+  --viz-text-muted: #98a1b5;
 }
 
 .light {
-  --background: #fafbfd;
+  --background: #f6f7fb;
   --surface: #ffffff;
-  --raised: #f1f4f9;
-  --subtle: #d6dce8;
-  --ring: #3b5bdb;
+  --raised: #f1f3f9;
+  --subtle: #e6e9f1;
+  --border-strong: #d3d8e4;
+  --ring: #5460e6;
+  --accent-glow: rgba(84, 96, 230, 0.12);
 
-  --foreground: #11151d;
-  --secondary-fg: #4a5568;
-  --muted-fg: #6b7385;
+  --foreground: #151925;
+  --secondary-fg: #586074;
+  --muted-fg: #8a92a6;
 
-  --primary: #5560e0;
-  --primary-hover: #4853c8;
+  --primary: #5460e6;
+  --primary-hover: #4954d0;
   --primary-foreground: #ffffff;
 
-  /* Semantic hues kept; support tokens adjusted for light contrast */
-  --viz-range: #c4cbd9;
-  --viz-bar: #5560e0;
-  --viz-edge: #c4cbd9;
+  /* Light-theme semantic hues (raised for contrast on paper) */
+  --viz-compare: #b8791a;
+  --viz-swap: #0d82c4;
+  --viz-sorted: #0f9d6e;
+  --viz-visited: #7044d6;
+  --viz-frontier: #c2620a;
+  --viz-pivot: #d0415a;
+  --viz-range: #d3d8e4;
+
+  --viz-bar: #5460e6;
+  --viz-edge: #d3d8e4;
   --viz-on-fill: #ffffff;
-  --viz-text-muted: #4a5568;
+  --viz-text-muted: #586074;
 }
 
-/* Fonts (theme-stable) */
+/* Fonts (theme-stable) — IBM Plex pairing from the design system */
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", "Fira Code", monospace;
 }
 
 /* Map raw vars → Tailwind color utilities (bg-surface, text-foreground, border-subtle, …).
@@ -83,6 +96,7 @@
   --color-surface: var(--surface);
   --color-raised: var(--raised);
   --color-subtle: var(--subtle);
+  --color-border-strong: var(--border-strong);
   --color-ring: var(--ring);
 
   --color-foreground: var(--foreground);
@@ -112,7 +126,21 @@
     -webkit-font-smoothing: antialiased;
   }
   ::selection {
-    background-color: color-mix(in srgb, var(--primary) 35%, transparent);
+    background-color: var(--accent-glow);
+  }
+}
+
+@layer components {
+  /* Card hover lift — from the design system (use on bordered cards). */
+  .lift {
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background 0.18s ease;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
   }
 }
 
@@ -123,5 +151,8 @@
   *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
+  }
+  .lift:hover {
+    transform: none;
   }
 }
