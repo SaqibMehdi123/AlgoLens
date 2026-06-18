@@ -17,15 +17,18 @@ export default function PracticePage() {
   }));
 
   return (
-    <div className="py-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Practice</h1>
-        <p className="mt-2 max-w-[64ch] text-secondary">
-          {problems.length} problems linked to the Foundations track. Samples run instantly in your
-          browser; submissions are judged in an isolated sandbox with hidden test cases.
-        </p>
-      </header>
-      <ProblemList problems={summaries} />
+    <div className="mx-auto w-full max-w-[1000px] py-9">
+      <div className="mb-2 font-mono text-xs uppercase tracking-[0.15em] text-primary">
+        // {problems.length} problems
+      </div>
+      <h1 className="text-[32px] font-bold tracking-[-0.02em] text-foreground">Practice</h1>
+      <p className="mt-2 max-w-[620px] text-base text-secondary">
+        Linked to the Foundations track. Samples run instantly in your browser; submissions are
+        judged in an isolated sandbox with hidden test cases.
+      </p>
+      <div className="mt-7">
+        <ProblemList problems={summaries} />
+      </div>
     </div>
   );
 }

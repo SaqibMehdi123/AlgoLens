@@ -69,6 +69,25 @@ export function TrackCard({ track }: { track: TrackMeta }) {
   );
 }
 
+/** Comp progress card for the track overview header. */
+export function TrackProgressBar({ track }: { track: TrackMeta }) {
+  const { total, done } = useTrackStats(track);
+  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  return (
+    <div className="rounded-xl border border-subtle bg-surface px-[18px] py-4">
+      <div className="mb-2 flex items-center justify-between font-mono text-xs text-secondary">
+        <span>
+          Track progress · {done} / {total} lessons
+        </span>
+        <span className="font-semibold text-primary">{pct}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-md bg-raised">
+        <div className="h-full bg-linear-to-r from-primary to-primary-hover" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 /** Module/lesson listing for the track overview page, with completion + prerequisite states. */
 export function TrackOutline({ track }: { track: TrackMeta }) {
   const { progress } = useTrackStats(track);
@@ -82,7 +101,7 @@ export function TrackOutline({ track }: { track: TrackMeta }) {
     <div className="flex flex-col gap-8">
       {track.modules.map((module) => (
         <section key={module.slug}>
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">
+          <h2 className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-secondary">
             {module.position}. {module.title}
           </h2>
           <ul className="flex flex-col gap-2">

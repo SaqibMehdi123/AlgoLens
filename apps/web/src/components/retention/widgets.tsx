@@ -114,7 +114,7 @@ export function ActivityHeatmap({ state, weeks = 12 }: { state: RetentionState; 
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium uppercase tracking-wide text-muted">Activity</p>
+      <p className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">Activity</p>
       <div className="grid grid-flow-col grid-rows-7 gap-1" role="img" aria-label="Activity heatmap">
         {cells.map((cell) => (
           <span
@@ -133,7 +133,7 @@ export function BadgeShelf({ state }: { state: RetentionState }) {
   const earned = earnedBadges(state);
   return (
     <div>
-      <p className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">Badges</p>
+      <p className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted">Badges</p>
       <div className="flex flex-wrap gap-3">
         {BADGES.map((b) => {
           const has = earned.has(b.slug);
