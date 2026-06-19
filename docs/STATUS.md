@@ -184,6 +184,29 @@ Tracks progress against the implementation roadmap (private planning docs).
   Competitive Programmer's Handbook, cp-algorithms, CTCI); predict_output quizzes use engine-faithful
   traces. New `apps/web check:mdx` compiles every lesson through the production MDX pipeline (9/9 ok).
 
+### Design-system port + persistence start + observability (2026-06-19)
+
+- ✅ **New design system adopted across every page** (IBM Plex Sans/Mono, deeper indigo-on-near-black
+  tokens + `--elevated` inset layer, mono UI text, `.lift` cards, accent-shadow buttons, accent
+  active-nav, gradient avatar) — login, register, visualize catalog, dashboard, learn catalog, track
+  overview, profile, practice, lesson reader (filled callouts + difficulty hero), review, and the
+  analyze/playground/problem-workspace headers. The original logo is unchanged. ADR-style brief in
+  [design-brief.md](./design-brief.md).
+- ✅ **Email/password auth** (Auth.js Credentials + bcrypt, `password_hash` migration `0001`) added
+  alongside GitHub/Google; standalone auth pages.
+- ✅ **DB live + curriculum seeded**: `db:seed` now also upserts tracks/modules/lessons/prerequisites
+  from the content manifest — verified **1 track · 4 modules · 9 lessons · 13 prereq edges · 12 viz**.
+- ✅ **Durable persistence started**: `PUT /api/v1/progress/lessons/:slug` swapped from 501 to a
+  real session-gated Drizzle upsert of `user_lesson_progress` (verified signed-out → 401 live). The
+  canonical pattern for the remaining routes.
+- ✅ **Observability wired, env-flagged** (Sentry via instrumentation.ts/instrumentation-client.ts;
+  PostHog via a client `<Analytics/>` provider) — fully inert without keys; CSP `connect-src`
+  extended for both. Deduped drizzle-orm (added `@opentelemetry/api` to `@algolens/db`).
+- ⛔️ **Still gated** (need your involvement, not code): persistence **client-store swap** + the
+  quiz/review/analysis/submission routes (verify via a signed-in browser; some have content-model
+  nuances); **password reset + email verification** (needs an email sender); **Judge0** C++/Java/
+  Python judging (needs an isolated VM, TRD §7).
+
 ## Next (post-launch backlog)
 
 - **Polish:** Playwright e2e (PRD stories #1–#5), axe-core CI, Canvas renderer >300 elements,
