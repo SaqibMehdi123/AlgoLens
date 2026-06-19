@@ -115,6 +115,27 @@ export function createProgressStore(storage: StorageLike | null = defaultStorage
     isCompleted(slug: string): boolean {
       return lesson(slug).completedAt !== null;
     },
+
+    /**
+     * Merge server-side progress into local (monotonic: keep the further scroll + any completion).
+     * Used to hydrate a signed-in device from the account without losing local progress.
+     */
+    merge(
+      serverLessons: Record<string, { status?: string; scrollPct?: number; completedAt?: string | null }>,
+    ): void {
+      const next: Record<string, LessonProgress> = { ...state.lessons };
+      for (const [slug, sv] of Object.entries(serverLessons)) {
+        const cur = next[slug] ?? { scrollPct: 0, passedQuizzes: [], completedAt: null };
+        const serverCompletedAt =
+          sv.completedAt ?? (sv.status === "completed" ? new Date().toISOString() : null);
+        next[slug] = {
+          scrollPct: Math.max(cur.scrollPct, sv.scrollPct ?? 0),
+          passedQuizzes: cur.passedQuizzes,
+          completedAt: cur.completedAt ?? serverCompletedAt,
+        };
+      }
+      persist({ ...state, lessons: next });
+    },
   };
 }
 
