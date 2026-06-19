@@ -28,7 +28,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "worker-src 'self' blob:",
-  "connect-src 'self'",
+  // 'self' + the observability endpoints (used only when their env keys are set; harmless otherwise).
+  "connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://*.sentry.io https://*.ingest.sentry.io",
 ].join("; ");
 
 const securityHeaders = [
