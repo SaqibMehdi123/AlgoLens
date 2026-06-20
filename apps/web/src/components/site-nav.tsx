@@ -97,7 +97,7 @@ export function SiteNav() {
               </Link>
               <Link
                 href="/register"
-                className="rounded-lg bg-primary px-3.5 py-1.5 font-mono text-[13px] font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
+                className="rounded-lg bg-primary px-3.5 py-1.5 font-mono text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
               >
                 Get started
               </Link>

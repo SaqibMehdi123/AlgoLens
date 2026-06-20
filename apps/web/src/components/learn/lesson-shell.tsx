@@ -188,7 +188,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
               {next ? (
                 <Link
                   href={`/learn/${track.slug}/${next.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
                 >
                   Next: {next.title}
                   <ArrowRight className="size-4" />
@@ -196,7 +196,7 @@ export function LessonShell({ track, lesson, next, children }: LessonShellProps)
               ) : (
                 <Link
                   href="/learn"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 font-mono text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
                 >
                   Back to tracks
                 </Link>

@@ -113,7 +113,7 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/register"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-mono font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-mono font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               Get started — free
               <ArrowRight className="size-4" />
@@ -146,7 +146,7 @@ export default function Home() {
       {/* Four pillars */}
       <section className="mt-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight">Four pillars, one continuous loop</h2>
+          <h2 className="text-3xl font-bold tracking-[-0.02em]">Four pillars, one continuous loop</h2>
           <p className="mt-3 text-secondary">
             Context is never lost between tools — the same trace engine powers every screen, so what
             you watch is what you analyze and what you practice.
@@ -188,7 +188,7 @@ export default function Home() {
       {/* How it works */}
       <section className="mt-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight">How a concept actually lands</h2>
+          <h2 className="text-3xl font-bold tracking-[-0.02em]">How a concept actually lands</h2>
           <p className="mt-3 text-secondary">From &ldquo;I&rsquo;ve heard of it&rdquo; to &ldquo;I can write it under pressure,&rdquo; in four moves.</p>
         </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -207,7 +207,7 @@ export default function Home() {
       {/* Principles */}
       <section className="mt-20">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight">Built on principles, not vibes</h2>
+          <h2 className="text-3xl font-bold tracking-[-0.02em]">Built on principles, not vibes</h2>
           <p className="mt-3 text-secondary">
             The engineering decisions that make AlgoLens trustworthy rather than just pretty.
           </p>
@@ -235,7 +235,7 @@ export default function Home() {
               <GitBranch className="size-5" />
               <span className="text-sm font-medium uppercase tracking-wide">Grounded in the canon</span>
             </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            <h2 className="mt-3 text-2xl font-bold tracking-[-0.02em]">
               Researched from the books that define the field
             </h2>
             <p className="mt-3 text-secondary">
@@ -262,7 +262,7 @@ export default function Home() {
         className="mt-20 overflow-hidden rounded-2xl border border-subtle p-10 text-center sm:p-14"
         style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), var(--surface))" }}
       >
-        <h2 className="text-3xl font-semibold tracking-tight">Watch it, prove it, then write it.</h2>
+        <h2 className="text-3xl font-bold tracking-[-0.02em]">Watch it, prove it, then write it.</h2>
         <p className="mx-auto mt-3 max-w-[52ch] text-secondary">
           Start free — no credit card. Your progress, streaks, and review schedule follow you across
           devices the moment you create an account.
@@ -270,7 +270,7 @@ export default function Home() {
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-mono font-semibold text-primary-foreground shadow-[0_8px_26px_-10px_var(--primary)] transition-colors hover:bg-primary-hover"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-mono font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
             Create your free account
             <ArrowRight className="size-4" />
