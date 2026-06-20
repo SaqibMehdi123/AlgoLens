@@ -6,8 +6,13 @@ import { Providers } from "@/components/providers";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
+// Production URL for absolute metadata/OG links: explicit env, else Vercel's, else local dev.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "AlgoLens — See the algorithm. Prove the complexity.",
     template: "%s · AlgoLens",

@@ -33,6 +33,8 @@ providers.push(
 
 export const authConfig: NextAuthConfig = {
   adapter: AlgoLensAdapter(),
+  // Trust the host header behind Vercel's proxy (lets Auth.js derive the callback URL in prod).
+  trustHost: true,
   // JWT sessions (ADR-0006): edge-safe, serverless-friendly, and a fit for our bespoke schema
   // (our `sessions` table is `tokenHash`-shaped, not the adapter's `sessionToken` shape).
   session: { strategy: "jwt" },
